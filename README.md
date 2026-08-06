@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Artikel-Trainer — Logistik & IT
 
-## Getting Started
+Application Next.js pour apprendre le vocabulaire allemand de la logistique et de
+l'IT : les articles (der/die/das) et toutes les formes de déclinaison
+(Nominativ, Akkusativ, Dativ, Genitiv, singulier/pluriel, article défini et
+indéfini).
 
-First, run the development server:
+- **343 mots** classés en 14 thèmes (entrepôt, transport, douane, achats,
+  production, qualité, logiciels métier, programmation, réseau, finance,
+  travail, communication, personnes...)
+- Chaque mot a : son article, son pluriel, une explication de la règle de
+  genre, un exemple de phrase traduit, et sa fiche de déclinaison complète
+  générée automatiquement.
+- Trois modules : entraînement aux articles, entraînement aux déclinaisons,
+  et exploration/recherche du vocabulaire.
+
+## Développement local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Puis ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Déploiement sur GitHub Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Le déploiement est automatique via GitHub Actions (`.github/workflows/deploy.yml`) :
+à chaque `push` sur `main`, le site est reconstruit (export statique) et publié.
 
-## Learn More
+**Étape unique à faire une fois sur GitHub** : dans le dépôt, aller dans
+`Settings` → `Pages` → section "Build and deployment" → régler `Source` sur
+**GitHub Actions**. Le site sera ensuite disponible à
+`https://<utilisateur>.github.io/learn-vocabulary/`.
 
-To learn more about Next.js, take a look at the following resources:
+Pour déployer manuellement en local (sans passer par les Actions) :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build   # génère le dossier out/ (export statique)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Le nom du dépôt est en dur dans `next.config.ts` (`repoName`) pour calculer le
+`basePath` — à modifier si le dépôt est renommé.
 
-## Deploy on Vercel
+## Ajouter du vocabulaire
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Les mots sont organisés par thème dans `src/data/words/*.ts`. Pour ajouter un
+mot, ajouter une entrée `Word` (voir `src/lib/types.ts`) dans le fichier du
+thème concerné :
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```ts
+{
+  id: "identifiant-unique",
+  de: "Nomallemand",
+  artikel: "der", // ou "die" / "das"
+  plural: "Nomallemände", // ou null si pas de pluriel courant
+  fr: "traduction",
+  category: "lager", // doit correspondre à une clé de src/data/categories.ts
+  rule: "Explication de la règle de genre (peut contenir **gras**).",
+  example: { de: "Phrase d'exemple.", fr: "Traduction." },
+  // declClass: "weak", // si le nom suit la n-Déklination (der Kunde, der Mandant...)
+}
+```
+
+Le tableau de déclinaison complet (les 6 formes d'article : der, die, das,
+den, dem, des, et les formes ein/kein) est calculé automatiquement par
+`src/lib/declension.ts` à partir du genre — inutile de le saisir à la main.

@@ -1,0 +1,30 @@
+import type { Word } from "@/lib/types";
+import { RULE_UNG, RULE_TION, RULE_E_FEM, RULE_MEMORIZE, ruleCompound } from "../ruleHelpers";
+
+const cat = "qualitaet";
+
+const words: Word[] = [
+  { id: "reklamation", de: "Reklamation", artikel: "die", plural: "Reklamationen", fr: "réclamation", category: cat, rule: RULE_TION, example: { de: "Die Reklamation betrifft nur eine Position.", fr: "La réclamation ne concerne qu'une seule ligne." } },
+  { id: "schadensfall", de: "Schadensfall", artikel: "der", plural: "Schadensfälle", fr: "cas de dommage / sinistre", category: cat, rule: ruleCompound("der", "Fall"), example: { de: "Im Schadensfall gilt die CMR-Haftung.", fr: "En cas de sinistre, la responsabilité CMR s'applique." } },
+  { id: "haftung", de: "Haftung", artikel: "die", plural: null, fr: "responsabilité", category: cat, rule: RULE_UNG, example: { de: "Die Haftung liegt beim Frachtführer.", fr: "La responsabilité incombe au transporteur." } },
+  { id: "gutschrift", de: "Gutschrift", artikel: "die", plural: "Gutschriften", fr: "avoir (comptable)", category: cat, rule: ruleCompound("die", "Schrift"), example: { de: "Wir stellen eine Gutschrift aus.", fr: "Nous établissons un avoir." } },
+  { id: "retoure", de: "Retoure", artikel: "die", plural: "Retouren", fr: "retour marchandise", category: cat, rule: RULE_E_FEM, example: { de: "Die Retoure wird im System erfasst.", fr: "Le retour est enregistré dans le système." } },
+  { id: "mangel", de: "Mangel", artikel: "der", plural: "Mängel", fr: "défaut / vice", category: cat, rule: RULE_MEMORIZE, example: { de: "Der Mangel wurde bei der Kontrolle entdeckt.", fr: "Le défaut a été découvert lors du contrôle." } },
+  { id: "beanstandung", de: "Beanstandung", artikel: "die", plural: "Beanstandungen", fr: "contestation / plainte qualité", category: cat, rule: RULE_UNG, example: { de: "Die Beanstandung wird innerhalb von 48 Stunden bearbeitet.", fr: "La contestation est traitée sous 48 heures." } },
+  { id: "abweichung", de: "Abweichung", artikel: "die", plural: "Abweichungen", fr: "écart / non-conformité", category: cat, rule: RULE_UNG, example: { de: "Die Abweichung wurde dokumentiert.", fr: "L'écart a été documenté." } },
+  { id: "fehlerquote", de: "Fehlerquote", artikel: "die", plural: "Fehlerquoten", fr: "taux d'erreur", category: cat, rule: ruleCompound("die", "Quote"), example: { de: "Die Fehlerquote liegt unter einem Prozent.", fr: "Le taux d'erreur est inférieur à un pour cent." } },
+  { id: "pruefung", de: "Prüfung", artikel: "die", plural: "Prüfungen", fr: "contrôle / vérification", category: cat, rule: RULE_UNG, example: { de: "Die Prüfung erfolgt stichprobenartig.", fr: "Le contrôle se fait par sondage." } },
+  { id: "reklamationsquote", de: "Reklamationsquote", artikel: "die", plural: "Reklamationsquoten", fr: "taux de réclamation", category: cat, rule: ruleCompound("die", "Quote"), example: { de: "Die Reklamationsquote sank im letzten Jahr.", fr: "Le taux de réclamation a baissé l'an dernier." } },
+  { id: "transportschaden", de: "Transportschaden", artikel: "der", plural: "Transportschäden", fr: "avarie de transport", category: cat, rule: ruleCompound("der", "Schaden"), example: { de: "Der Transportschaden wurde fotografisch dokumentiert.", fr: "L'avarie de transport a été documentée par photo." } },
+  { id: "falschlieferung", de: "Falschlieferung", artikel: "die", plural: "Falschlieferungen", fr: "erreur de livraison", category: cat, rule: ruleCompound("die", "Lieferung"), example: { de: "Bei einer Falschlieferung wird die Ware kostenlos abgeholt.", fr: "En cas d'erreur de livraison, la marchandise est reprise gratuitement." } },
+  { id: "fehlmenge", de: "Fehlmenge", artikel: "die", plural: "Fehlmengen", fr: "quantité manquante", category: cat, rule: ruleCompound("die", "Menge"), example: { de: "Die Fehlmenge wird nachgeliefert.", fr: "La quantité manquante sera livrée ultérieurement." } },
+  { id: "qualitaetsmanagement", de: "Qualitätsmanagement", artikel: "das", plural: null, fr: "gestion de la qualité", category: cat, rule: ruleCompound("das", "Management"), example: { de: "Das Qualitätsmanagement zertifiziert nach ISO 9001.", fr: "La gestion qualité certifie selon la norme ISO 9001." } },
+  { id: "reklamationsbearbeitung", de: "Reklamationsbearbeitung", artikel: "die", plural: null, fr: "traitement des réclamations", category: cat, rule: ruleCompound("die", "Bearbeitung"), example: { de: "Die Reklamationsbearbeitung läuft über ein Ticketsystem.", fr: "Le traitement des réclamations passe par un système de tickets." } },
+  { id: "gewaehrleistung", de: "Gewährleistung", artikel: "die", plural: "Gewährleistungen", fr: "garantie légale", category: cat, rule: RULE_UNG, example: { de: "Die Gewährleistung beträgt zwei Jahre.", fr: "La garantie légale est de deux ans." } },
+  { id: "korrekturmassnahme", de: "Korrekturmaßnahme", artikel: "die", plural: "Korrekturmaßnahmen", fr: "action corrective", category: cat, rule: ruleCompound("die", "Maßnahme"), example: { de: "Eine Korrekturmaßnahme wurde eingeleitet.", fr: "Une action corrective a été lancée." } },
+  { id: "reklamationsgrund", de: "Reklamationsgrund", artikel: "der", plural: "Reklamationsgründe", fr: "motif de réclamation", category: cat, rule: ruleCompound("der", "Grund"), example: { de: "Der Reklamationsgrund war eine falsche Etikettierung.", fr: "Le motif de réclamation était un mauvais étiquetage." } },
+  { id: "audit", de: "Audit", artikel: "das", plural: "Audits", fr: "audit", category: cat, rule: "Anglicisme récent sans terminaison indicatrice → neutre par défaut (das), même si « der Audit » se rencontre aussi.", example: { de: "Das Audit findet nächste Woche statt.", fr: "L'audit a lieu la semaine prochaine." } },
+  { id: "zertifizierung", de: "Zertifizierung", artikel: "die", plural: "Zertifizierungen", fr: "certification", category: cat, rule: RULE_UNG, example: { de: "Die Zertifizierung muss jährlich erneuert werden.", fr: "La certification doit être renouvelée chaque année." } },
+];
+
+export default words;

@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #14171c;
+  --paper: #eae4d8;
+  --paper-2: #f2ede3;
+  --line: #c8bfae;
+  --muted: #6a6455;
+  --gold: #b07d34;
+
+  --der: #2f5d7c;
+  --die: #9a3b47;
+  --das: #4a6b3f;
+  --der-soft: #dce6ed;
+  --die-soft: #f0dcdf;
+  --das-soft: #dfe8d9;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root[data-theme="dark"] {
+  --ink: #ece7db;
+  --paper: #14171c;
+  --paper-2: #1b1f26;
+  --line: #333a44;
+  --muted: #8b8d93;
+  --gold: #d1a15c;
+
+  --der: #6fa8cf;
+  --die: #d98a94;
+  --das: #8fbf7f;
+  --der-soft: #1c2c38;
+  --die-soft: #352225;
+  --das-soft: #223223;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --ink: #ece7db;
+    --paper: #14171c;
+    --paper-2: #1b1f26;
+    --line: #333a44;
+    --muted: #8b8d93;
+    --gold: #d1a15c;
+
+    --der: #6fa8cf;
+    --die: #d98a94;
+    --das: #8fbf7f;
+    --der-soft: #1c2c38;
+    --die-soft: #352225;
+    --das-soft: #223223;
   }
 }
 
+@theme inline {
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-der: var(--der);
+  --color-die: var(--die);
+  --color-das: var(--das);
+  --color-der-soft: var(--der-soft);
+  --color-die-soft: var(--die-soft);
+  --color-das-soft: var(--das-soft);
+}
+
+html {
+  color-scheme: light dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-source-serif), Georgia, "Times New Roman", serif;
+}
+
+.font-ui {
+  font-family: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--paper);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Empêche le zoom automatique iOS sur les champs de saisie */
+input,
+select,
+textarea {
+  font-size: 16px;
 }

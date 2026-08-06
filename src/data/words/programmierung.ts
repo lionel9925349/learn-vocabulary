@@ -1,0 +1,34 @@
+import type { Word } from "@/lib/types";
+import { RULE_UNG, RULE_E_FEM, RULE_ANGLICISM_DER_ER, RULE_MEMORIZE, ruleCompound } from "../ruleHelpers";
+
+const cat = "programmierung";
+
+const words: Word[] = [
+  { id: "quellcode", de: "Quellcode", artikel: "der", plural: "Quellcodes", fr: "code source", category: cat, rule: ruleCompound("der", "Code"), example: { de: "Der Quellcode liegt auf GitHub.", fr: "Le code source se trouve sur GitHub." } },
+  { id: "fehler", de: "Fehler", artikel: "der", plural: "Fehler", fr: "erreur / bug", category: cat, rule: RULE_MEMORIZE, example: { de: "Der Fehler tritt nur bei leerem Bestand auf.", fr: "L'erreur ne se produit que quand le stock est vide." } },
+  { id: "funktion", de: "Funktion", artikel: "die", plural: "Funktionen", fr: "fonction", category: cat, rule: "Suffixe **-tion** → toujours féminin.", example: { de: "Die Funktion berechnet den Lagerplatz automatisch.", fr: "La fonction calcule automatiquement l'emplacement." } },
+  { id: "variable", de: "Variable", artikel: "die", plural: "Variablen", fr: "variable", category: cat, rule: RULE_E_FEM, example: { de: "Die Variable speichert die aktuelle Menge.", fr: "La variable stocke la quantité actuelle." } },
+  { id: "datenbankabfrage", de: "Datenbankabfrage", artikel: "die", plural: "Datenbankabfragen", fr: "requête base de données", category: cat, rule: ruleCompound("die", "Abfrage"), example: { de: "Die Datenbankabfrage dauert zu lange.", fr: "La requête met trop de temps." } },
+  { id: "anwendung", de: "Anwendung", artikel: "die", plural: "Anwendungen", fr: "application", category: cat, rule: RULE_UNG, example: { de: "Die Anwendung läuft im Browser.", fr: "L'application fonctionne dans le navigateur." } },
+  { id: "entwicklung", de: "Entwicklung", artikel: "die", plural: "Entwicklungen", fr: "développement", category: cat, rule: RULE_UNG, example: { de: "Die Entwicklung dauert noch zwei Sprints.", fr: "Le développement prend encore deux sprints." } },
+  { id: "entwickler", de: "Entwickler", artikel: "der", plural: "Entwickler", fr: "développeur", category: cat, rule: "Suffixe **-er** désignant une personne → masculin (der).", example: { de: "Der Entwickler behebt den Fehler noch heute.", fr: "Le développeur corrige le bug aujourd'hui." } },
+  { id: "programmierschnittstelle", de: "Programmierschnittstelle", artikel: "die", plural: "Programmierschnittstellen", fr: "interface de programmation (API)", category: cat, rule: ruleCompound("die", "Schnittstelle"), example: { de: "Die Programmierschnittstelle liefert JSON zurück.", fr: "L'API renvoie du JSON." } },
+  { id: "algorithmus", de: "Algorithmus", artikel: "der", plural: "Algorithmen", fr: "algorithme", category: cat, rule: "Suffixe **-us** d'origine grecque/latine → masculin (der), comme la plupart des mots savants en -us.", example: { de: "Der Algorithmus optimiert die Route.", fr: "L'algorithme optimise l'itinéraire." } },
+  { id: "datenstruktur", de: "Datenstruktur", artikel: "die", plural: "Datenstrukturen", fr: "structure de données", category: cat, rule: ruleCompound("die", "Struktur", "(-ur)"), example: { de: "Die Datenstruktur wurde vereinfacht.", fr: "La structure de données a été simplifiée." } },
+  { id: "klasse", de: "Klasse", artikel: "die", plural: "Klassen", fr: "classe (POO)", category: cat, rule: RULE_E_FEM, example: { de: "Die Klasse erbt von der Basisklasse.", fr: "La classe hérite de la classe de base." } },
+  { id: "methode", de: "Methode", artikel: "die", plural: "Methoden", fr: "méthode", category: cat, rule: RULE_E_FEM, example: { de: "Die Methode gibt den Bestand zurück.", fr: "La méthode renvoie le stock." } },
+  { id: "schleife", de: "Schleife", artikel: "die", plural: "Schleifen", fr: "boucle", category: cat, rule: RULE_E_FEM, example: { de: "Die Schleife läuft über alle Artikel.", fr: "La boucle parcourt tous les articles." } },
+  { id: "bibliothek", de: "Bibliothek", artikel: "die", plural: "Bibliotheken", fr: "bibliothèque (logicielle)", category: cat, rule: RULE_MEMORIZE, example: { de: "Die Bibliothek wird über npm installiert.", fr: "La bibliothèque s'installe via npm." } },
+  { id: "abhaengigkeit", de: "Abhängigkeit", artikel: "die", plural: "Abhängigkeiten", fr: "dépendance", category: cat, rule: "Suffixe **-keit** → toujours féminin.", example: { de: "Eine veraltete Abhängigkeit verursacht den Konflikt.", fr: "Une dépendance obsolète cause le conflit." } },
+  { id: "versionsverwaltung", de: "Versionsverwaltung", artikel: "die", plural: null, fr: "gestion de versions", category: cat, rule: ruleCompound("die", "Verwaltung"), example: { de: "Die Versionsverwaltung läuft über Git.", fr: "La gestion de versions passe par Git." } },
+  { id: "zweig", de: "Zweig", artikel: "der", plural: "Zweige", fr: "branche (Git)", category: cat, rule: RULE_MEMORIZE, example: { de: "Der Zweig wird nach dem Merge gelöscht.", fr: "La branche est supprimée après la fusion." } },
+  { id: "testfall", de: "Testfall", artikel: "der", plural: "Testfälle", fr: "cas de test", category: cat, rule: ruleCompound("der", "Fall"), example: { de: "Der Testfall deckt den Fehlerfall ab.", fr: "Le cas de test couvre le cas d'erreur." } },
+  { id: "bereitstellung", de: "Bereitstellung", artikel: "die", plural: "Bereitstellungen", fr: "déploiement (mise à disposition)", category: cat, rule: RULE_UNG, example: { de: "Die Bereitstellung erfolgt automatisch nach dem Merge.", fr: "Le déploiement se fait automatiquement après la fusion." } },
+  { id: "container-sw", de: "Container", artikel: "der", plural: "Container", fr: "conteneur logiciel (Docker)", category: cat, rule: RULE_ANGLICISM_DER_ER, example: { de: "Der Container startet in drei Sekunden.", fr: "Le conteneur démarre en trois secondes." } },
+  { id: "auslastungstest", de: "Lasttest", artikel: "der", plural: "Lasttests", fr: "test de charge", category: cat, rule: ruleCompound("der", "Test"), example: { de: "Der Lasttest simuliert tausend Nutzer.", fr: "Le test de charge simule mille utilisateurs." } },
+  { id: "sicherheitsluecke", de: "Sicherheitslücke", artikel: "die", plural: "Sicherheitslücken", fr: "faille de sécurité", category: cat, rule: ruleCompound("die", "Lücke"), example: { de: "Die Sicherheitslücke wurde sofort geschlossen.", fr: "La faille de sécurité a été corrigée immédiatement." } },
+  { id: "schnittstellendokumentation", de: "Schnittstellendokumentation", artikel: "die", plural: null, fr: "documentation d'interface", category: cat, rule: ruleCompound("die", "Dokumentation"), example: { de: "Die Schnittstellendokumentation ist veraltet.", fr: "La documentation d'interface est obsolète." } },
+  { id: "code", de: "Code", artikel: "der", plural: "Codes", fr: "code", category: cat, rule: RULE_MEMORIZE, example: { de: "Der Code wurde noch nicht getestet.", fr: "Le code n'a pas encore été testé." } },
+];
+
+export default words;
