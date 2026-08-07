@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ArticleTrainer from "@/components/ArticleTrainer";
+import TargetedQuiz from "@/components/TargetedQuiz";
 import WORDS from "@/data";
 
 export const metadata: Metadata = {
@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 export default function ArticlesPage() {
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-1">Entraînement aux articles</h1>
-      <p className="text-muted italic text-[15px] mb-6">
-        Devine l&rsquo;article de chaque mot. Chaque erreur revient un peu plus loin dans la
-        série, jamais perdue.
+      <h1 className="text-2xl font-semibold mb-1">Articles</h1>
+      <p className="text-muted italic text-[14.5px] mb-4">
+        der, die ou das ? Chaque erreur revient plus loin dans la série et remonte dans ta
+        file de révision.
       </p>
-      <ArticleTrainer words={WORDS} />
+      <TargetedQuiz pool={WORDS} kind="article" />
     </div>
   );
 }

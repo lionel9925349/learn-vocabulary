@@ -8,7 +8,12 @@ export default function DeclensionTable({ word }: { word: Word }) {
 
   return (
     <div className="grid sm:grid-cols-2 gap-5">
-      <Block title="Singulier" rows={singular} indefLabel="ein / kein" color={`var(--${word.artikel})`} />
+      <Block
+        title="Singulier"
+        rows={singular}
+        indefLabel="ein / kein"
+        color={`var(--${word.artikel ?? "das"})`}
+      />
       <Block title="Pluriel (tous genres)" rows={plural} indefLabel="kein" color="var(--gold)" />
     </div>
   );

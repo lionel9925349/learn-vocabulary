@@ -4,50 +4,90 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Word } from "@/lib/types";
+import { isNoun } from "@/lib/types";
+import { useSrs } from "@/lib/srsStore";
 import { categories } from "@/data";
+
+type Filter = "all" | "learning" | "unseen" | "mastered";
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "all", label: "Tous" },
+  { key: "unseen", label: "Jamais vus" },
+  { key: "learning", label: "En cours" },
+  { key: "mastered", label: "Maîtrisés" },
+];
 
 export default function WordBrowser({ words }: { words: Word[] }) {
   const searchParams = useSearchParams();
   const catParam = searchParams.get("cat");
+  const srs = useSrs();
+
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState(
     catParam && categories.some((c) => c.key === catParam) ? catParam : "all"
   );
+  const [status, setStatus] = useState<Filter>("all");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return words.filter((w) => {
       if (activeCategory !== "all" && w.category !== activeCategory) return false;
+
+      if (status !== "all") {
+        const card = srs.cards[w.id];
+        if (status === "unseen" && card) return false;
+        if (status === "learning" && (!card || card.box >= 3)) return false;
+        if (status === "mastered" && (!card || card.box < 3)) return false;
+      }
+
       if (!q) return true;
       return w.de.toLowerCase().includes(q) || w.fr.toLowerCase().includes(q);
     });
-  }, [words, query, activeCategory]);
+  }, [words, query, activeCategory, status, srs]);
 
   return (
     <div>
       <input
-        type="text"
+        type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Chercher un mot (allemand ou français)…"
-        className="w-full font-ui text-base px-4 py-3 rounded border border-line bg-paper-2 outline-none focus:border-ink transition-colors"
+        className="w-full font-ui text-base px-4 py-3 rounded-lg border border-line bg-paper-2 outline-none focus:border-ink transition-colors"
       />
 
-      <div className="flex gap-1.5 font-ui mt-4 overflow-x-auto -mx-4 px-4 pb-1 no-scrollbar">
+      <div className="flex gap-1.5 font-ui mt-3 overflow-x-auto -mx-4 px-4 pb-1 no-scrollbar">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setStatus(f.key)}
+            className={`shrink-0 whitespace-nowrap text-[11.5px] px-3 py-2 rounded-full border transition ${
+              status === f.key ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-1.5 font-ui mt-2 overflow-x-auto -mx-4 px-4 pb-1 no-scrollbar">
         <button
           onClick={() => setActiveCategory("all")}
-          className={`shrink-0 whitespace-nowrap text-[11.5px] tracking-wide px-3 py-2 rounded-full border transition-colors ${
-            activeCategory === "all" ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
+          className={`shrink-0 whitespace-nowrap text-[11.5px] px-3 py-2 rounded-full border transition ${
+            activeCategory === "all"
+              ? "bg-ink text-paper border-ink"
+              : "border-line text-muted hover:border-ink"
           }`}
         >
-          Tous
+          Tous thèmes
         </button>
         {categories.map((c) => (
           <button
             key={c.key}
             onClick={() => setActiveCategory(c.key)}
-            className={`shrink-0 whitespace-nowrap text-[11.5px] tracking-wide px-3 py-2 rounded-full border transition-colors ${
-              activeCategory === c.key ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
+            className={`shrink-0 whitespace-nowrap text-[11.5px] px-3 py-2 rounded-full border transition ${
+              activeCategory === c.key
+                ? "bg-ink text-paper border-ink"
+                : "border-line text-muted hover:border-ink"
             }`}
           >
             {c.label}
@@ -55,25 +95,49 @@ export default function WordBrowser({ words }: { words: Word[] }) {
         ))}
       </div>
 
-      <div className="font-ui text-[12px] text-muted mt-4 mb-2">{filtered.length} mots</div>
+      <div className="font-ui text-[12px] text-muted mt-4 mb-2">{filtered.length} entrées</div>
 
       <ul className="divide-y divide-line border-t border-b border-line">
-        {filtered.map((w) => (
-          <li key={w.id}>
-            <Link
-              href={`/mots/${w.id}`}
-              className="flex items-center justify-between gap-3 py-3 px-1 hover:bg-paper-2 transition-colors"
-            >
-              <span className="flex items-baseline gap-2 min-w-0">
-                <span className="font-semibold w-11 shrink-0" style={{ color: `var(--${w.artikel})` }}>
-                  {w.artikel}
+        {filtered.map((w) => {
+          const card = srs.cards[w.id];
+          return (
+            <li key={w.id}>
+              <Link
+                href={`/mots/${w.id}`}
+                className="flex items-center justify-between gap-3 py-3 px-1 hover:bg-paper-2 transition-colors"
+              >
+                <span className="flex items-baseline gap-2 min-w-0">
+                  {isNoun(w) && w.artikel ? (
+                    <span
+                      className="font-semibold w-10 shrink-0 text-[15px]"
+                      style={{ color: `var(--${w.artikel})` }}
+                    >
+                      {w.artikel}
+                    </span>
+                  ) : (
+                    <span className="font-ui text-[10px] uppercase text-muted w-10 shrink-0">
+                      {w.kind === "verb" ? "verbe" : w.kind === "phrase" ? "expr." : "adj."}
+                    </span>
+                  )}
+                  <span className="truncate">{w.de}</span>
                 </span>
-                <span className="truncate">{w.de}</span>
-              </span>
-              <span className="text-muted text-[13.5px] italic truncate max-w-[40%] text-right">{w.fr}</span>
-            </Link>
-          </li>
-        ))}
+                <span className="flex items-center gap-2 shrink-0 max-w-[45%]">
+                  <span className="text-muted text-[13px] italic truncate">{w.fr}</span>
+                  {card && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{
+                        background:
+                          card.box >= 5 ? "var(--das)" : card.box >= 3 ? "var(--der)" : "var(--gold)",
+                      }}
+                      title={`Palier ${card.box}`}
+                    />
+                  )}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
 
       {filtered.length === 0 && (

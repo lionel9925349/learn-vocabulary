@@ -1,0 +1,55 @@
+import type { Word } from "@/lib/types";
+import { makers } from "../builders";
+
+const { n } = makers("recht");
+
+/** Droit des contrats et conformité — le vocabulaire des clauses et litiges. */
+const words: Word[] = [
+  n("Vertragsbedingung", "die", "Vertragsbedingungen", "condition contractuelle"),
+  n("Geschäftsbedingung", "die", "Geschäftsbedingungen", "condition générale (CGV/AGB)"),
+  n("Klausel", "die", "Klauseln", "clause"),
+  n("Vertragsstrafe", "die", "Vertragsstrafen", "pénalité contractuelle"),
+  n("Schadensersatz", "der", null, "dommages et intérêts"),
+  n("Haftungsausschluss", "der", "Haftungsausschlüsse", "clause de non-responsabilité"),
+  n("Haftungsbeschränkung", "die", "Haftungsbeschränkungen", "limitation de responsabilité"),
+  n("Gewährleistungsfrist", "die", "Gewährleistungsfristen", "durée de garantie légale"),
+  n("Verjährung", "die", "Verjährungen", "prescription"),
+  n("Erfüllungsort", "der", "Erfüllungsorte", "lieu d'exécution"),
+  n("Gerichtsstand", "der", "Gerichtsstände", "juridiction compétente"),
+  n("Rechtsstreit", "der", "Rechtsstreite", "litige"),
+  n("Schiedsverfahren", "das", "Schiedsverfahren", "procédure d'arbitrage"),
+  n("Streitbeilegung", "die", "Streitbeilegungen", "règlement des différends"),
+  n("Rechtsanwalt", "der", "Rechtsanwälte", "avocat"),
+  n("Rechtsabteilung", "die", "Rechtsabteilungen", "service juridique"),
+  n("Vollmacht", "die", "Vollmachten", "procuration"),
+  n("Einwilligung", "die", "Einwilligungen", "consentement"),
+  n("Verpflichtung", "die", "Verpflichtungen", "obligation"),
+  n("Verstoß", "der", "Verstöße", "infraction / manquement"),
+  n("Verletzung", "die", "Verletzungen", "violation"),
+  n("Kündigungsgrund", "der", "Kündigungsgründe", "motif de résiliation"),
+  n("Rücktritt", "der", "Rücktritte", "rétractation / retrait"),
+  n("Anfechtung", "die", "Anfechtungen", "contestation / annulation"),
+  n("Nachfrist", "die", "Nachfristen", "délai supplémentaire"),
+  n("Mängelrüge", "die", "Mängelrügen", "notification de défaut"),
+  n("Beweislast", "die", null, "charge de la preuve"),
+  n("Geheimhaltungsvereinbarung", "die", "Geheimhaltungsvereinbarungen", "accord de confidentialité (NDA)"),
+  n("Betriebsgeheimnis", "das", "Betriebsgeheimnisse", "secret d'affaires"),
+  n("Urheberrecht", "das", "Urheberrechte", "droit d'auteur"),
+  n("Eigentumsvorbehalt", "der", "Eigentumsvorbehalte", "réserve de propriété"),
+  n("Übergabe", "die", "Übergaben", "remise / transfert"),
+  n("Abnahmeprotokoll", "das", "Abnahmeprotokolle", "procès-verbal de réception"),
+  n("Vorschrift", "die", "Vorschriften", "prescription / règlement"),
+  n("Richtlinie", "die", "Richtlinien", "directive"),
+  n("Verordnung", "die", "Verordnungen", "règlement (texte officiel)"),
+  n("Auflage", "die", "Auflagen", "condition imposée / exigence"),
+  n("Genehmigung", "die", "Genehmigungen", "autorisation"),
+  n("Zulassung", "die", "Zulassungen", "homologation / agrément"),
+  n("Norm", "die", "Normen", "norme"),
+  n("Einhaltung", "die", null, "respect / conformité"),
+  n("Aufbewahrungspflicht", "die", "Aufbewahrungspflichten", "obligation de conservation"),
+  n("Meldepflicht", "die", "Meldepflichten", "obligation de déclaration"),
+  n("Sorgfaltspflicht", "die", "Sorgfaltspflichten", "devoir de diligence"),
+  n("Bußgeld", "das", "Bußgelder", "amende administrative"),
+];
+
+export default words;

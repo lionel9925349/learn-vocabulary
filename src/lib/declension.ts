@@ -39,6 +39,11 @@ function genderKey(artikel: Word["artikel"]): "m" | "f" | "n" {
   return artikel === "der" ? "m" : artikel === "die" ? "f" : "n";
 }
 
+/** Un mot sans article (verbe, expression) n'a pas de tableau de déclinaison. */
+export function hasDeclension(word: Word): boolean {
+  return (word.kind ?? "noun") === "noun" && !!word.artikel;
+}
+
 /** Forme du nom en Akkusativ/Dativ Singular (identique au Nominativ sauf classe "weak") */
 export function weakObliqueSg(word: Word): string {
   if (word.declClass !== "weak") return word.de;
