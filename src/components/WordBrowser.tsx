@@ -102,38 +102,37 @@ export default function WordBrowser({ words }: { words: Word[] }) {
           const card = srs.cards[w.id];
           return (
             <li key={w.id}>
+              {/* Le mot et son sens sur deux lignes : la traduction n'est jamais coupée. */}
               <Link
                 href={`/mots/${w.id}`}
-                className="flex items-center justify-between gap-3 py-3 px-1 hover:bg-paper-2 transition-colors"
+                className="flex items-start gap-2 py-3 px-1 hover:bg-paper-2 transition-colors"
               >
-                <span className="flex items-baseline gap-2 min-w-0">
-                  {isNoun(w) && w.artikel ? (
-                    <span
-                      className="font-semibold w-10 shrink-0 text-[15px]"
-                      style={{ color: `var(--${w.artikel})` }}
-                    >
-                      {w.artikel}
-                    </span>
-                  ) : (
-                    <span className="font-ui text-[10px] uppercase text-muted w-10 shrink-0">
-                      {w.kind === "verb" ? "verbe" : w.kind === "phrase" ? "expr." : "adj."}
-                    </span>
-                  )}
-                  <span className="truncate">{w.de}</span>
+                {isNoun(w) && w.artikel ? (
+                  <span
+                    className="font-semibold w-10 shrink-0 text-[15px]"
+                    style={{ color: `var(--${w.artikel})` }}
+                  >
+                    {w.artikel}
+                  </span>
+                ) : (
+                  <span className="font-ui text-[10px] uppercase text-muted w-10 shrink-0 pt-1">
+                    {w.kind === "verb" ? "verbe" : w.kind === "phrase" ? "expr." : "adj."}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block">{w.de}</span>
+                  <span className="block text-muted text-[13.5px] italic mt-0.5">{w.fr}</span>
                 </span>
-                <span className="flex items-center gap-2 shrink-0 max-w-[45%]">
-                  <span className="text-muted text-[13px] italic truncate">{w.fr}</span>
-                  {card && (
-                    <span
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{
-                        background:
-                          card.box >= 5 ? "var(--das)" : card.box >= 3 ? "var(--der)" : "var(--gold)",
-                      }}
-                      title={`Palier ${card.box}`}
-                    />
-                  )}
-                </span>
+                {card && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0 mt-2"
+                    style={{
+                      background:
+                        card.box >= 5 ? "var(--das)" : card.box >= 3 ? "var(--der)" : "var(--gold)",
+                    }}
+                    title={`Palier ${card.box}`}
+                  />
+                )}
               </Link>
             </li>
           );

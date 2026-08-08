@@ -25,6 +25,13 @@ export interface Word {
   /** Neutralise l'heuristique si la forme oblique faible est irrégulière (der Name → Namen) */
   weakObliqueOverride?: string;
 
+  // — Adjectifs —
+  /**
+   * Adjectif épithète, qui se décline devant un nom (der **gute** Preis).
+   * Faux pour les adverbes et mots de liaison, invariables (sofort, trotz…).
+   */
+  attributive?: boolean;
+
   // — Verbes —
   /** Participe passé avec auxiliaire, ex. "hat geliefert" / "ist gefahren" */
   perfekt?: string;
@@ -32,6 +39,18 @@ export interface Word {
   governs?: string;
   /** Verbe à particule séparable (an|kommen) */
   separable?: boolean;
+  /**
+   * 3ᵉ personne du singulier au présent, uniquement pour les verbes forts dont
+   * la voyelle change (nehmen → "nimmt", laden → "lädt"). Les verbes réguliers
+   * sont conjugués automatiquement.
+   */
+  praesens?: string;
+  /**
+   * 2ᵉ personne du singulier, quand elle ne se déduit pas de la 3ᵉ : c'est le
+   * cas des radicaux déjà terminés par -t, où le -t final est absorbé au
+   * singulier (er hält → du häl**tst**, er tritt → du tri**ttst**).
+   */
+  praesensDu?: string;
 
   /** Explication de la règle de genre. Si absente, elle est déduite de la morphologie. */
   rule?: string;

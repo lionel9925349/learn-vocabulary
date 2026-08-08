@@ -35,8 +35,14 @@ export function makers(category: string) {
       return { id: slug(de), de, fr, category, kind: "verb", perfekt, ...extra };
     },
 
+    /** Adjectif épithète : se décline devant un nom (der gute Preis). */
     adj(de: string, fr: string, extra: Extra = {}): Word {
-      return { id: slug(de), de, fr, category, kind: "adjective", ...extra };
+      return { id: slug(de), de, fr, category, kind: "adjective", attributive: true, ...extra };
+    },
+
+    /** Adverbe ou mot de liaison : invariable, jamais décliné. */
+    adv(de: string, fr: string, extra: Extra = {}): Word {
+      return { id: slug(de), de, fr, category, kind: "adjective", attributive: false, ...extra };
     },
 
     /** Expression : l'identifiant est raccourci car la phrase peut être longue. */

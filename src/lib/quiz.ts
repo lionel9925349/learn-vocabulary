@@ -2,8 +2,30 @@ import type { Gender, Word } from "./types";
 import { isNoun, displayForm } from "./types";
 import { CASE_INFO, CASES, articleFor, nounForm, type CaseName } from "./declension";
 import { ruleFor } from "./genderRules";
+import { checkAnswer, type AcceptedForm } from "./answerCheck";
+import { canConjugate, conjugatePresent } from "./conjugation";
+import {
+  ALL_ENDINGS,
+  DECLENSION_LABELS,
+  GENDER_LABELS,
+  adjectiveEnding,
+  adjectiveStem,
+  declensionFor,
+  declineAdjective,
+  genderKeyOf,
+  type DeterminerType,
+  type NumberGender,
+} from "./adjectiveDeclension";
 
-export type QuestionKind = "article" | "de-fr" | "fr-de" | "plural" | "declension";
+export type QuestionKind =
+  | "article"
+  | "de-fr"
+  | "fr-de"
+  | "plural"
+  | "declension"
+  | "type-de"
+  | "adjective"
+  | "conjugation";
 
 export const KIND_LABELS: Record<QuestionKind, string> = {
   article: "Quel article ?",
@@ -11,6 +33,9 @@ export const KIND_LABELS: Record<QuestionKind, string> = {
   "fr-de": "Comment le dit-on en allemand ?",
   plural: "Quel est le pluriel ?",
   declension: "Quelle forme de l'article ?",
+  "type-de": "Écris-le en allemand",
+  adjective: "Quelle terminaison d'adjectif ?",
+  conjugation: "Conjugue au présent",
 };
 
 export interface Question {
@@ -18,14 +43,46 @@ export interface Question {
   word: Word;
   /** Texte principal affiché (le mot ou la phrase à trous) */
   prompt: string;
-  /** Précision sous le prompt */
+  /**
+   * Sens du mot, affiché en permanence à côté de la question.
+   * Absent uniquement quand la traduction est justement la réponse attendue :
+   * on n'apprend pas un article sur un mot dont on ignore le sens.
+   */
+  meaning?: string;
+  /** Précision sous le prompt (pluriel, cas, construction…) */
   sub?: string;
   choices: string[];
   correct: string;
+  /** Réponse tapée au clavier plutôt que choisie dans une liste */
+  typed?: boolean;
+  /** Autres formulations acceptées, avec le rappel qui les accompagne */
+  accepted?: AcceptedForm[];
   /** Explication montrée après la réponse */
   explanation: string;
   /** Texte à prononcer une fois la réponse donnée */
   speak?: string;
+}
+
+export interface Evaluation {
+  correct: boolean;
+  /** Précision affichée quand la réponse est juste mais imparfaite */
+  note?: string;
+}
+
+/**
+ * Juge une réponse, qu'elle ait été choisie ou tapée.
+ *
+ * Une faute de frappe compte comme une réussite : le mot a bien été retrouvé
+ * en mémoire, c'est ce que l'exercice mesure. La forme exacte est rappelée.
+ */
+export function evaluate(question: Question, answer: string): Evaluation {
+  if (!question.typed) return { correct: answer === question.correct };
+
+  const result = checkAnswer(answer, question.correct, question.accepted);
+  return {
+    correct: result.verdict === "correct" || result.verdict === "almost",
+    note: result.note,
+  };
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -86,11 +143,113 @@ const SENTENCES: Record<CaseName, { build: (art: string, noun: string) => string
 /** Types de questions possibles pour un mot donné. */
 export function availableKinds(word: Word): QuestionKind[] {
   const kinds: QuestionKind[] = ["de-fr", "fr-de"];
+  // Les expressions entières sont trop longues à taper sur un téléphone.
+  if (word.kind !== "phrase") kinds.push("type-de");
   if (isNoun(word) && word.artikel) {
     kinds.push("article", "declension");
     if (word.plural) kinds.push("plural");
   }
+  if (word.kind === "adjective" && word.attributive) kinds.push("adjective");
+  if (canConjugate(word)) kinds.push("conjugation");
   return kinds;
+}
+
+/** Conjugaison : une personne est demandée, les autres servent de distracteurs. */
+function conjugationQuestion(word: Word): Question {
+  const rows = conjugatePresent(word);
+  const row = pick(rows);
+
+  const otherForms = Array.from(new Set(rows.map((r) => r.verb))).filter((v) => v !== row.verb);
+  const distractorForms = shuffle(otherForms).slice(0, 3);
+
+  const subject = row.person === "er/sie/es" ? "er" : row.person === "sie/Sie" ? "sie" : row.person;
+  const tail = row.prefix ? ` … ${row.prefix}` : "";
+
+  const irregularNote = row.irregular
+    ? `\n\nVerbe **fort** : la voyelle du radical change au singulier (${word.de} → er ${rows[2].verb}).`
+    : "";
+  const prefixNote = row.prefix
+    ? `\n\nParticule **séparable** : elle se détache et part en fin de proposition — _${subject} ${row.verb} die Ware ${row.prefix}_.`
+    : "";
+
+  return {
+    kind: "conjugation",
+    word,
+    prompt: `${subject} ＿＿＿${tail}`,
+    meaning: `${word.de} — ${word.fr}`,
+    sub: `Présent · ${row.person}`,
+    choices: shuffle([row.verb, ...distractorForms]),
+    correct: row.verb,
+    explanation: `**${row.form}**${irregularNote}${prefixNote}${
+      word.perfekt ? `\n\nParfait : **${word.perfekt}**.` : ""
+    }`,
+    speak: `${subject} ${row.verb}${row.prefix ? ` ${row.prefix}` : ""}`,
+  };
+}
+
+const ADJ_FRAMES: Record<CaseName, (det: string, blank: string, noun: string) => string> = {
+  Nominativ: (det, blank, noun) => `${det} ${blank} ${noun} ist wichtig.`.trim(),
+  Akkusativ: (det, blank, noun) => `Wir brauchen ${det} ${blank} ${noun}.`.replace("  ", " "),
+  Dativ: (det, blank, noun) => `Wir arbeiten mit ${det} ${blank} ${noun}.`.replace("  ", " "),
+  Genitiv: (det, blank, noun) => `Wegen ${det} ${blank} ${noun} gibt es Probleme.`.replace("  ", " "),
+};
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * Déclinaison de l'adjectif : on montre le déterminant et on demande la
+ * terminaison, pour faire sentir que c'est lui qui commande.
+ */
+function adjectiveQuestion(word: Word, all: Word[]): Question {
+  const nouns = all.filter((w) => isNoun(w) && w.artikel);
+  const noun = pick(nouns);
+
+  const plural = !!noun.plural && Math.random() < 0.35;
+  const caseName = pick(CASES);
+  const determiner: DeterminerType = pick<DeterminerType>(["definite", "indefinite", "none"]);
+  const declension = declensionFor(determiner);
+
+  const gender: NumberGender = plural ? "pl" : genderKeyOf(noun.artikel as Gender);
+  const correct = declineAdjective(word.de, declension, caseName, gender);
+
+  // « ein » n'a pas de pluriel : on illustre le mixte au pluriel avec « kein ».
+  const detWord =
+    determiner === "none"
+      ? ""
+      : determiner === "definite"
+        ? articleFor(gender, caseName, "definite")
+        : articleFor(gender, caseName, "indefinite");
+
+  const nounForm_ = nounForm(noun, caseName, plural) ?? noun.de;
+  const stem = adjectiveStem(word.de);
+
+  const choices = Array.from(new Set(ALL_ENDINGS.map((e) => stem + e)));
+  const distractorForms = shuffle(choices.filter((c) => c !== correct)).slice(0, 3);
+
+  const frame = ADJ_FRAMES[caseName];
+  const prompt = capitalize(frame(detWord, "＿＿＿", nounForm_));
+  const solved = capitalize(frame(detWord, correct, nounForm_));
+
+  const why =
+    declension === "weak"
+      ? `**${detWord}** porte déjà le genre et le cas, donc l'adjectif se contente de **-e** ou **-en** (déclinaison **faible**).`
+      : declension === "mixed"
+        ? `**${detWord}** ne marque pas toujours le genre, l'adjectif complète l'information (déclinaison **mixte**).`
+        : `Sans déterminant, c'est l'adjectif qui doit porter le genre et le cas : il prend les terminaisons de l'article défini (déclinaison **forte**).`;
+
+  return {
+    kind: "adjective",
+    word,
+    prompt,
+    meaning: `${word.de} — ${word.fr}`,
+    sub: `${caseName} · ${DECLENSION_LABELS[declension]} · ${plural ? "pluriel" : GENDER_LABELS[gender]}`,
+    choices: shuffle([correct, ...distractorForms]),
+    correct,
+    explanation: `${why}\n\nAu **${caseName}** ${plural ? "pluriel" : GENDER_LABELS[gender]}, la terminaison est **-${adjectiveEnding(declension, caseName, gender)}**.\n\n_${solved}_`,
+    speak: solved,
+  };
 }
 
 export function buildQuestion(word: Word, all: Word[], kind?: QuestionKind): Question {
@@ -106,10 +265,43 @@ export function buildQuestion(word: Word, all: Word[], kind?: QuestionKind): Que
       return declensionQuestion(word);
     case "fr-de":
       return frDeQuestion(word, all);
+    case "type-de":
+      return typedQuestion(word);
+    case "adjective":
+      return adjectiveQuestion(word, all);
+    case "conjugation":
+      return conjugationQuestion(word);
     case "de-fr":
     default:
       return deFrQuestion(word, all);
   }
+}
+
+/** Rappel actif : le mot doit sortir de la mémoire, pas d'une liste de choix. */
+function typedQuestion(word: Word): Question {
+  const expected = displayForm(word);
+  const accepted: AcceptedForm[] =
+    isNoun(word) && word.artikel
+      ? [
+          {
+            form: word.de,
+            note: `Juste, mais un nom s'apprend toujours avec son article : **${expected}**.`,
+          },
+        ]
+      : [];
+
+  return {
+    kind: "type-de",
+    word,
+    prompt: word.fr,
+    sub: isNoun(word) ? "Avec son article" : word.kind === "verb" ? "À l'infinitif" : undefined,
+    choices: [],
+    correct: expected,
+    typed: true,
+    accepted,
+    explanation: buildMeaningExplanation(word),
+    speak: expected,
+  };
 }
 
 function articleQuestion(word: Word): Question {
@@ -117,6 +309,7 @@ function articleQuestion(word: Word): Question {
     kind: "article",
     word,
     prompt: word.de,
+    meaning: word.fr,
     sub: word.plural ? `Pluriel : die ${word.plural}` : undefined,
     choices: ["der", "die", "das"],
     correct: word.artikel as Gender,
@@ -136,7 +329,7 @@ function pluralQuestion(word: Word, all: Word[]): Question {
     kind: "plural",
     word,
     prompt: `${word.artikel} ${word.de}`,
-    sub: word.fr,
+    meaning: word.fr,
     choices: shuffle([correct, ...others]),
     correct,
     explanation: `Au pluriel, l'article devient **die** pour tous les genres : **die ${correct}**. Au datif pluriel, le nom prend en plus un **-n** s'il n'en a pas déjà.`,
@@ -207,6 +400,7 @@ function declensionQuestion(word: Word): Question {
     kind: "declension",
     word,
     prompt: sentence.build("＿＿＿", noun),
+    meaning: `${word.artikel} ${word.de} — ${word.fr}`,
     sub: `${caseName} · ${sentence.hint} — ${kindLabel}, ${plural ? "pluriel" : `mot ${word.artikel}`}`,
     choices: shuffle([correct, ...others]),
     correct,

@@ -6,6 +6,7 @@ import type { Word } from "@/lib/types";
 import { BOX_COUNT, BOX_LABELS, computeStats, todayKey } from "@/lib/srs";
 import { useSrs, resetProgress } from "@/lib/srsStore";
 import { categories } from "@/data";
+import BackupPanel from "./BackupPanel";
 
 export default function ProgressDashboard({ pool }: { pool: Word[] }) {
   const srs = useSrs();
@@ -149,7 +150,9 @@ export default function ProgressDashboard({ pool }: { pool: Word[] }) {
         ))}
       </ul>
 
-      <div className="mt-10 border border-line rounded-lg p-4">
+      <BackupPanel />
+
+      <div className="mt-6 border border-line rounded-lg p-4">
         <h3 className="font-ui text-[11px] uppercase tracking-[0.12em] text-muted mb-2">
           Données
         </h3>

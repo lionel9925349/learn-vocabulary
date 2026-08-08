@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Word } from "@/lib/types";
-import { buildQuestion, availableKinds, type Question, type QuestionKind } from "@/lib/quiz";
+import { buildQuestion, availableKinds, evaluate, type Question, type QuestionKind } from "@/lib/quiz";
 import { recordAnswer } from "@/lib/srsStore";
 import { categories } from "@/data";
 import QuizCard from "./QuizCard";
@@ -60,7 +60,7 @@ export default function TargetedQuiz({ pool, kind }: { pool: Word[]; kind: Quest
   function answer(choice: string) {
     if (!question || selected !== null) return;
     setSelected(choice);
-    const isRight = choice === question.correct;
+    const { correct: isRight } = evaluate(question, choice);
     recordAnswer(question.word.id, isRight);
     setAsked((n) => n + 1);
     if (isRight) {

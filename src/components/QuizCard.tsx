@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import type { Question } from "@/lib/quiz";
-import { KIND_LABELS } from "@/lib/quiz";
+import { KIND_LABELS, evaluate } from "@/lib/quiz";
 import { categories } from "@/data";
 import Markup from "./Markup";
 import AudioButton from "./AudioButton";
+import TypedAnswerInput from "./TypedAnswerInput";
 
 /**
  * Carte de question, partagée par la session de révision et les exercices ciblés.
@@ -26,7 +27,8 @@ export default function QuizCard({
   nextLabel?: string;
 }) {
   const answered = selected !== null;
-  const isRight = selected === question.correct;
+  const result = answered ? evaluate(question, selected) : null;
+  const isRight = result?.correct ?? false;
   const longChoices = question.choices.some((c) => c.length > 14);
   const category = categories.find((c) => c.key === question.word.category);
 
@@ -50,11 +52,35 @@ export default function QuizCard({
       >
         {question.prompt}
       </div>
+      {/* Le sens reste sous les yeux : on n'apprend pas un article sur un mot inconnu. */}
+      {question.meaning && (
+        <div className="text-center text-[16px] text-muted italic mt-2 px-2">{question.meaning}</div>
+      )}
       {question.sub && (
-        <div className="text-center text-[13.5px] text-muted italic mt-2">{question.sub}</div>
+        <div className="text-center text-[13px] text-muted mt-1.5 px-2">{question.sub}</div>
       )}
 
-      <div className={`mt-6 grid gap-2.5 ${longChoices ? "grid-cols-1" : "grid-cols-3"}`}>
+      {question.typed && !answered && <TypedAnswerInput onSubmit={onAnswer} />}
+
+      {question.typed && answered && (
+        <div className="mt-6 text-center">
+          <div className="font-ui text-[11px] uppercase tracking-[0.12em] text-muted mb-1.5">
+            Ta réponse
+          </div>
+          <div
+            className="text-[20px] font-semibold"
+            style={{ color: isRight ? "var(--das)" : "var(--die)" }}
+          >
+            {selected}
+          </div>
+        </div>
+      )}
+
+      <div
+        className={`mt-6 grid gap-2.5 ${longChoices ? "grid-cols-1" : "grid-cols-3"} ${
+          question.typed ? "hidden" : ""
+        }`}
+      >
         {question.choices.map((choice) => {
           const isCorrectChoice = choice === question.correct;
           const isPicked = choice === selected;
@@ -107,6 +133,13 @@ export default function QuizCard({
             <span>{isRight ? "Richtig !" : `Non — ${question.correct}`}</span>
             {question.speak && <AudioButton text={question.speak} />}
           </div>
+
+          {result?.note && (
+            <Markup
+              text={result.note}
+              className="text-[13.5px] leading-relaxed text-muted mb-2"
+            />
+          )}
 
           <Markup
             text={question.explanation}

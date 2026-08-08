@@ -6,7 +6,7 @@ import type { Word } from "@/lib/types";
 import { displayForm, isNoun } from "@/lib/types";
 import { buildSession, computeStats } from "@/lib/srs";
 import { useSrs, recordAnswer } from "@/lib/srsStore";
-import { buildQuestion, type Question } from "@/lib/quiz";
+import { buildQuestion, evaluate, type Question } from "@/lib/quiz";
 import { ruleFor } from "@/lib/genderRules";
 import QuizCard from "./QuizCard";
 import AudioButton from "./AudioButton";
@@ -52,7 +52,7 @@ export default function ReviewSession({ pool }: { pool: Word[] }) {
     const step = steps[index];
     if (step.type !== "quiz" || selected !== null) return;
     setSelected(choice);
-    const correct = choice === step.question.correct;
+    const { correct } = evaluate(step.question, choice);
     recordAnswer(step.question.word.id, correct);
     setResults((r) => [...r, { word: step.question.word, correct }]);
   }
@@ -286,19 +286,18 @@ function Summary({
           </h3>
           <ul>
             {missed.map((m, i) => (
-              <li
-                key={`${m.word.id}-${i}`}
-                className="py-2 border-b border-line flex justify-between gap-3 items-baseline"
-              >
-                <Link href={`/mots/${m.word.id}`} className="hover:text-gold">
-                  {isNoun(m.word) && m.word.artikel && (
-                    <span className="font-semibold" style={{ color: `var(--${m.word.artikel})` }}>
-                      {m.word.artikel}{" "}
-                    </span>
-                  )}
-                  {m.word.de}
+              <li key={`${m.word.id}-${i}`} className="py-2 border-b border-line">
+                <Link href={`/mots/${m.word.id}`} className="block hover:text-gold">
+                  <span className="block">
+                    {isNoun(m.word) && m.word.artikel && (
+                      <span className="font-semibold" style={{ color: `var(--${m.word.artikel})` }}>
+                        {m.word.artikel}{" "}
+                      </span>
+                    )}
+                    {m.word.de}
+                  </span>
+                  <span className="block text-muted italic text-[13.5px] mt-0.5">{m.word.fr}</span>
                 </Link>
-                <span className="text-muted italic text-[13.5px] text-right">{m.word.fr}</span>
               </li>
             ))}
           </ul>

@@ -9,6 +9,12 @@ export const metadata: Metadata = {
 
 const MODES = [
   {
+    href: "/ecrire",
+    title: "Écrire en allemand",
+    desc: "Sans choix multiples : tu tapes le mot. Le plus exigeant, et celui qui ancre le mieux.",
+    accent: "var(--gold)",
+  },
+  {
     href: "/articles",
     title: "Articles",
     desc: "der, die ou das ? Le réflexe de base, avec la règle expliquée à chaque réponse.",
@@ -16,9 +22,21 @@ const MODES = [
   },
   {
     href: "/declinaisons",
-    title: "Déclinaisons",
+    title: "Déclinaisons de l'article",
     desc: "Nominativ, Akkusativ, Dativ, Genitiv — la bonne forme de l'article dans la phrase.",
     accent: "var(--die)",
+  },
+  {
+    href: "/adjektive",
+    title: "Déclinaison de l'adjectif",
+    desc: "der gute / ein guter / mit gutem — le point le plus dur de l'allemand, avec ses tableaux.",
+    accent: "var(--die)",
+  },
+  {
+    href: "/verben",
+    title: "Conjugaison",
+    desc: "Le présent : verbes forts (er nimmt) et particules séparables (ich hole … ab).",
+    accent: "var(--das)",
   },
   {
     href: "/flashcards",

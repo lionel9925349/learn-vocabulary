@@ -6,6 +6,8 @@ import { isNoun, displayForm } from "@/lib/types";
 import { hasDeclension } from "@/lib/declension";
 import { ruleFor } from "@/lib/genderRules";
 import DeclensionTable from "@/components/DeclensionTable";
+import ConjugationTable from "@/components/ConjugationTable";
+import { canConjugate } from "@/lib/conjugation";
 import AudioButton from "@/components/AudioButton";
 import Markup from "@/components/Markup";
 import WordProgress from "@/components/WordProgress";
@@ -109,6 +111,15 @@ export default async function WordPage({ params }: { params: Promise<{ id: strin
       {word.note && <p className="mt-4 text-[13.5px] text-muted italic">{word.note}</p>}
 
       <WordProgress wordId={word.id} />
+
+      {canConjugate(word) && (
+        <>
+          <h2 className="font-ui text-[11px] uppercase tracking-[0.14em] text-muted mt-9 mb-3">
+            Conjugaison au présent
+          </h2>
+          <ConjugationTable word={word} />
+        </>
+      )}
 
       {hasDeclension(word) && (
         <>
