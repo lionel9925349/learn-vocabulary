@@ -12,6 +12,7 @@ import QuizCard from "./QuizCard";
 import AudioButton from "./AudioButton";
 import Markup from "./Markup";
 import WordUsage from "./WordUsage";
+import WordIllustration, { hasIllustration } from "./WordIllustration";
 
 /** Un mot jamais vu est d'abord présenté, puis testé dans la foulée. */
 type Step = { type: "intro"; word: Word } | { type: "quiz"; question: Question };
@@ -203,7 +204,14 @@ function IntroCard({ word, onNext }: { word: Word; onNext: () => void }) {
         Nouveau mot
       </div>
 
-      <div className="text-center text-[30px] sm:text-[34px] font-semibold leading-tight">
+      {/* Voir l'objet en même temps que son nom crée une seconde trace en mémoire. */}
+      {hasIllustration(word.id) && (
+        <div className="flex justify-center mb-3">
+          <WordIllustration id={word.id} size={104} />
+        </div>
+      )}
+
+      <div lang="de" className="text-center font-semibold german word-display sm:!text-[34px]">
         {isNoun(word) && word.artikel ? (
           <>
             <span style={{ color: `var(--${word.artikel})` }}>{word.artikel}</span> {word.de}

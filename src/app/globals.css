@@ -84,6 +84,28 @@ body {
   color: var(--paper);
 }
 
+/*
+ * Mot allemand affiché en grand.
+ *
+ * Les composés allemands sont très longs (Warenverkehrsbescheinigung, 26
+ * lettres) et débordaient de l'écran d'un téléphone. La césure automatique les
+ * coupe proprement aux frontières de syllabes — mais elle exige `lang="de"`
+ * sur l'élément, sinon le navigateur applique les règles du français.
+ * `overflow-wrap` sert de filet si la césure n'est pas disponible.
+ */
+.german {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* La taille suit la largeur disponible : un mot long reste lisible sans déborder. */
+.word-display {
+  font-size: clamp(1.5rem, 7.5vw, 2rem);
+  line-height: 1.15;
+}
+
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;

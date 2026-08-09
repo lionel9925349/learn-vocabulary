@@ -33,7 +33,9 @@ function Block({
   return (
     <div>
       <h3 className="font-ui text-[11px] uppercase tracking-[0.14em] text-muted mb-2">{title}</h3>
-      <table className="w-full text-[14.5px] border-collapse">
+      {/* Les noms composés sont longs : le tableau défile plutôt que d'être rogné. */}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <table className="w-full text-[14.5px] border-collapse">
         <thead>
           <tr className="font-ui text-[10.5px] uppercase tracking-wide text-muted">
             <th className="text-left font-normal pb-1.5">Cas</th>
@@ -55,12 +57,15 @@ function Block({
                   {row.definiteArticle}
                 </td>
                 <td className="py-1.5 pr-2 text-muted">{row.indefiniteArticle ?? "—"}</td>
-                <td className="py-1.5">{row.noun ?? <span className="text-muted">—</span>}</td>
+                <td lang="de" className="py-1.5 german">
+                  {row.noun ?? <span className="text-muted">—</span>}
+                </td>
               </tr>
             );
-          })}
-        </tbody>
-      </table>
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

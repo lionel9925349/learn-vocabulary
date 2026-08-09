@@ -11,6 +11,7 @@ import produktion from "./produktion";
 import recht from "./recht";
 import buero from "./buero";
 import adjektive from "./adjektive";
+import divers from "./divers";
 
 const MAPS: UsageMap[] = [
   lager,
@@ -25,6 +26,7 @@ const MAPS: UsageMap[] = [
   recht,
   buero,
   adjektive,
+  divers,
 ];
 
 /** Table d'usages consolidée, indexée par identifiant de mot. */

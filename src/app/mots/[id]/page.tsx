@@ -8,6 +8,7 @@ import { ruleFor } from "@/lib/genderRules";
 import DeclensionTable from "@/components/DeclensionTable";
 import ConjugationTable from "@/components/ConjugationTable";
 import WordUsage from "@/components/WordUsage";
+import WordIllustration, { hasIllustration } from "@/components/WordIllustration";
 import { canConjugate } from "@/lib/conjugation";
 import AudioButton from "@/components/AudioButton";
 import Markup from "@/components/Markup";
@@ -55,7 +56,13 @@ export default async function WordPage({ params }: { params: Promise<{ id: strin
         )}
       </div>
 
-      <h1 className="text-[32px] sm:text-[36px] font-semibold leading-tight">
+      {hasIllustration(word.id) && (
+        <div className="float-right ml-4 mb-2">
+          <WordIllustration id={word.id} size={88} />
+        </div>
+      )}
+
+      <h1 lang="de" className="german word-display sm:!text-[36px] font-semibold">
         {isNoun(word) && word.artikel ? (
           <>
             <span style={{ color: `var(--${word.artikel})` }}>{word.artikel}</span> {word.de}

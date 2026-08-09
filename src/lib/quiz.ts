@@ -121,23 +121,52 @@ const DEFINITE_POOL = ["der", "die", "das", "den", "dem", "des"];
 const EIN_POOL = ["ein", "eine", "einen", "einem", "eines", "einer"];
 const KEIN_POOL = ["kein", "keine", "keinen", "keinem", "keines", "keiner"];
 
-const SENTENCES: Record<CaseName, { build: (art: string, noun: string) => string; hint: string }> = {
-  Nominativ: {
-    build: (a, n) => `${a.charAt(0).toUpperCase() + a.slice(1)} ${n} ist gerade sehr gefragt.`,
-    hint: "sujet — répond à « qui / quoi ? »",
-  },
-  Akkusativ: {
-    build: (a, n) => `Wir brauchen ${a} ${n} dringend.`,
-    hint: "complément d'objet direct — après le verbe",
-  },
-  Dativ: {
-    build: (a, n) => `Das Problem liegt bei ${a} ${n}.`,
-    hint: "après « bei », qui gouverne le datif",
-  },
-  Genitiv: {
-    build: (a, n) => `Wegen ${a} ${n} gibt es eine Verzögerung.`,
-    hint: "après « wegen », qui gouverne le génitif",
-  },
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+type Frame = { build: (art: string, noun: string) => string; hint: string };
+
+/**
+ * Plusieurs tournures par cas, tirées au hasard.
+ *
+ * Avec un seul modèle par cas, on finissait par reconnaître la phrase plutôt
+ * que le cas — « Das Problem liegt bei… » à chaque datif. La variété force à
+ * relire la préposition et le verbe, qui sont justement ce qui commande le cas.
+ */
+const SENTENCES: Record<CaseName, Frame[]> = {
+  Nominativ: [
+    { build: (a, n) => `${cap(a)} ${n} ist gerade sehr gefragt.`, hint: "sujet — répond à « qui / quoi ? »" },
+    { build: (a, n) => `${cap(a)} ${n} fehlt im Lager.`, hint: "sujet du verbe fehlen" },
+    { build: (a, n) => `${cap(a)} ${n} wurde heute geliefert.`, hint: "sujet d'une phrase au passif" },
+    { build: (a, n) => `Hier steht ${a} ${n}.`, hint: "sujet inversé, après l'adverbe" },
+    { build: (a, n) => `${cap(a)} ${n} kostet zu viel.`, hint: "sujet du verbe kosten" },
+  ],
+  Akkusativ: [
+    { build: (a, n) => `Wir brauchen ${a} ${n} dringend.`, hint: "complément d'objet direct de brauchen" },
+    { build: (a, n) => `Ich habe ${a} ${n} bestellt.`, hint: "complément d'objet direct de bestellen" },
+    { build: (a, n) => `Bitte prüfen Sie ${a} ${n}.`, hint: "complément d'objet direct de prüfen" },
+    { build: (a, n) => `Wir suchen ${a} ${n} seit gestern.`, hint: "complément d'objet direct de suchen" },
+    { build: (a, n) => `Der Kunde hat ${a} ${n} reklamiert.`, hint: "complément d'objet direct de reklamieren" },
+    { build: (a, n) => `Ohne ${a} ${n} geht es nicht.`, hint: "après « ohne », qui gouverne l'accusatif" },
+    { build: (a, n) => `Für ${a} ${n} zahlen wir extra.`, hint: "après « für », qui gouverne l'accusatif" },
+  ],
+  Dativ: [
+    { build: (a, n) => `Das Problem liegt bei ${a} ${n}.`, hint: "après « bei », qui gouverne le datif" },
+    { build: (a, n) => `Wir arbeiten mit ${a} ${n}.`, hint: "après « mit », qui gouverne le datif" },
+    { build: (a, n) => `Nach ${a} ${n} ist Schluss.`, hint: "après « nach », qui gouverne le datif" },
+    { build: (a, n) => `Die Ware kommt von ${a} ${n}.`, hint: "après « von », qui gouverne le datif" },
+    { build: (a, n) => `Wir sprechen von ${a} ${n}.`, hint: "après « von », qui gouverne le datif" },
+    { build: (a, n) => `Zu ${a} ${n} habe ich eine Frage.`, hint: "après « zu », qui gouverne le datif" },
+    { build: (a, n) => `Seit ${a} ${n} läuft alles besser.`, hint: "après « seit », qui gouverne le datif" },
+  ],
+  Genitiv: [
+    { build: (a, n) => `Wegen ${a} ${n} gibt es eine Verzögerung.`, hint: "après « wegen », qui gouverne le génitif" },
+    { build: (a, n) => `Trotz ${a} ${n} liefern wir pünktlich.`, hint: "après « trotz », qui gouverne le génitif" },
+    { build: (a, n) => `Während ${a} ${n} bleibt das Lager zu.`, hint: "après « während », qui gouverne le génitif" },
+    { build: (a, n) => `Aufgrund ${a} ${n} wurde der Auftrag gestoppt.`, hint: "après « aufgrund », qui gouverne le génitif" },
+    { build: (a, n) => `Innerhalb ${a} ${n} muss geliefert werden.`, hint: "après « innerhalb », qui gouverne le génitif" },
+  ],
 };
 
 /** Types de questions possibles pour un mot donné. */
@@ -187,11 +216,33 @@ function conjugationQuestion(word: Word): Question {
   };
 }
 
-const ADJ_FRAMES: Record<CaseName, (det: string, blank: string, noun: string) => string> = {
-  Nominativ: (det, blank, noun) => `${det} ${blank} ${noun} ist wichtig.`.trim(),
-  Akkusativ: (det, blank, noun) => `Wir brauchen ${det} ${blank} ${noun}.`.replace("  ", " "),
-  Dativ: (det, blank, noun) => `Wir arbeiten mit ${det} ${blank} ${noun}.`.replace("  ", " "),
-  Genitiv: (det, blank, noun) => `Wegen ${det} ${blank} ${noun} gibt es Probleme.`.replace("  ", " "),
+type AdjFrame = (det: string, blank: string, noun: string) => string;
+
+/** Là aussi plusieurs tournures, pour ne pas apprendre la phrase à la place de la règle. */
+const ADJ_FRAMES: Record<CaseName, AdjFrame[]> = {
+  Nominativ: [
+    (d, b, n) => `${d} ${b} ${n} ist wichtig.`,
+    (d, b, n) => `${d} ${b} ${n} fehlt noch.`,
+    (d, b, n) => `Hier steht ${d} ${b} ${n}.`,
+    (d, b, n) => `${d} ${b} ${n} wurde geliefert.`,
+  ],
+  Akkusativ: [
+    (d, b, n) => `Wir brauchen ${d} ${b} ${n}.`,
+    (d, b, n) => `Ich habe ${d} ${b} ${n} bestellt.`,
+    (d, b, n) => `Bitte prüfen Sie ${d} ${b} ${n}.`,
+    (d, b, n) => `Ohne ${d} ${b} ${n} geht es nicht.`,
+  ],
+  Dativ: [
+    (d, b, n) => `Wir arbeiten mit ${d} ${b} ${n}.`,
+    (d, b, n) => `Nach ${d} ${b} ${n} wird geprüft.`,
+    (d, b, n) => `Die Ware kommt von ${d} ${b} ${n}.`,
+    (d, b, n) => `Bei ${d} ${b} ${n} gibt es Probleme.`,
+  ],
+  Genitiv: [
+    (d, b, n) => `Wegen ${d} ${b} ${n} gibt es Probleme.`,
+    (d, b, n) => `Trotz ${d} ${b} ${n} liefern wir.`,
+    (d, b, n) => `Während ${d} ${b} ${n} ruht die Arbeit.`,
+  ],
 };
 
 function capitalize(s: string): string {
@@ -228,9 +279,11 @@ function adjectiveQuestion(word: Word, all: Word[]): Question {
   const choices = Array.from(new Set(ALL_ENDINGS.map((e) => stem + e)));
   const distractorForms = shuffle(choices.filter((c) => c !== correct)).slice(0, 3);
 
-  const frame = ADJ_FRAMES[caseName];
-  const prompt = capitalize(frame(detWord, "＿＿＿", nounForm_));
-  const solved = capitalize(frame(detWord, correct, nounForm_));
+  // Sans déterminant, la phrase garderait une double espace là où il manque.
+  const frame = pick(ADJ_FRAMES[caseName]);
+  const tidy = (s: string) => s.replace(/\s{2,}/g, " ").trim();
+  const prompt = capitalize(tidy(frame(detWord, "＿＿＿", nounForm_)));
+  const solved = capitalize(tidy(frame(detWord, correct, nounForm_)));
 
   const why =
     declension === "weak"
@@ -393,7 +446,7 @@ function declensionQuestion(word: Word): Question {
   const poolForKind = definite ? DEFINITE_POOL : plural ? KEIN_POOL : EIN_POOL;
   const others = shuffle(poolForKind.filter((x) => x !== correct)).slice(0, 3);
 
-  const sentence = SENTENCES[caseName];
+  const sentence = pick(SENTENCES[caseName]);
   const kindLabel = definite ? "article défini" : plural ? "« kein »" : "article indéfini « ein »";
 
   return {

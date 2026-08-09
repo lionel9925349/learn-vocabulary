@@ -120,7 +120,7 @@ export default function WordBrowser({ words }: { words: Word[] }) {
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="block">{w.de}</span>
+                  <span lang="de" className="block german">{w.de}</span>
                   <span className="block text-muted text-[13.5px] italic mt-0.5">{w.fr}</span>
                 </span>
                 {card && (

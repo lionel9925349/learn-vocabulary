@@ -46,8 +46,11 @@ export default function QuizCard({
       </div>
 
       <div
-        className={`text-center font-semibold leading-tight ${
-          question.kind === "declension" ? "text-[20px] sm:text-[22px]" : "text-[28px] sm:text-[32px]"
+        lang="de"
+        className={`text-center font-semibold german ${
+          question.kind === "declension" || question.kind === "adjective" || question.kind === "conjugation"
+            ? "text-[19px] sm:text-[22px] leading-snug"
+            : "word-display"
         }`}
       >
         {question.prompt}
@@ -113,10 +116,11 @@ export default function QuizCard({
               onClick={() => onAnswer(choice)}
               // Une fois répondu, les choix se compactent : la place gagnée sert
               // à l'explication et à la phrase d'exemple.
-              className={`rounded-lg border-[1.5px] transition active:scale-[0.98] disabled:cursor-default ${
+              lang="de"
+              className={`rounded-lg border-[1.5px] transition active:scale-[0.98] disabled:cursor-default german ${
                 longChoices
                   ? `px-4 text-left text-[15px] ${answered ? "py-2" : "py-3.5"}`
-                  : `text-center font-semibold ${answered ? "py-2.5 text-[17px]" : "py-4 text-xl"}`
+                  : `px-2 text-center font-semibold ${answered ? "py-2.5 text-[17px]" : "py-4 text-lg sm:text-xl"}`
               }`}
               style={{ background, borderColor, color, opacity }}
             >

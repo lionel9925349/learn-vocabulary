@@ -103,14 +103,14 @@ export default function Flashcards({ pool }: { pool: Word[] }) {
       >
         {!flipped ? (
           <>
-            <div className="text-center text-[30px] font-semibold leading-tight">{front}</div>
+            <div lang="de" className="text-center font-semibold german word-display">{front}</div>
             <div className="font-ui text-[11px] uppercase tracking-[0.14em] text-muted mt-6">
               Toucher pour retourner
             </div>
           </>
         ) : (
           <div className="w-full">
-            <div className="text-center text-[26px] font-semibold leading-tight">
+            <div lang="de" className="text-center font-semibold german word-display">
               {isNoun(word) && word.artikel && direction === "fr-de" ? (
                 <>
                   <span style={{ color: `var(--${word.artikel})` }}>{word.artikel}</span> {word.de}
