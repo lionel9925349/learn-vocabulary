@@ -65,7 +65,7 @@ const usage: UsageMap = {
       ["Ohne Sicherheitsdatenblatt nehmen wir die Ware nicht an.", "Sans fiche de données de sécurité, nous n'acceptons pas la marchandise."],
     ],
   },
-  beförderungspapier: {
+  befoerderungspapier: {
     v: [
       ["das Beförderungspapier mitführen", "avoir le document de transport à bord"],
       ["das Beförderungspapier ausfüllen", "remplir le document de transport"],

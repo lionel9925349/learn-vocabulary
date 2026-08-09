@@ -9,6 +9,9 @@ const kennzahlen = makers("kennzahlen");
 /** Second lot logistique : entrepôt, transport, production et indicateurs. */
 const words: Word[] = [
   // — Entrepôt —
+  lager.n("Gabelstapler", "der", "Gabelstapler", "chariot élévateur"),
+  lager.n("Hubwagen", "der", "Hubwagen", "transpalette"),
+  lager.n("Förderband", "das", "Förderbänder", "convoyeur à bande"),
   lager.n("Lagerkennzahl", "die", "Lagerkennzahlen", "indicateur d'entrepôt"),
   lager.n("Lagerdauer", "die", "Lagerdauern", "durée de stockage"),
   lager.n("Lagerkosten", "die", "Lagerkosten", "coûts de stockage"),

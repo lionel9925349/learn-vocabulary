@@ -3,8 +3,12 @@ import lager from "./lager";
 import transport from "./transport";
 import gefahrgut from "./gefahrgut";
 import einkauf from "./einkauf";
+import zoll from "./zoll";
+import qualitaet from "./qualitaet";
+import it from "./it";
+import verben from "./verben";
 
-const MAPS: UsageMap[] = [lager, transport, gefahrgut, einkauf];
+const MAPS: UsageMap[] = [lager, transport, gefahrgut, einkauf, zoll, qualitaet, it, verben];
 
 /** Table d'usages consolidée, indexée par identifiant de mot. */
 const USAGE: UsageMap = Object.assign({}, ...MAPS);

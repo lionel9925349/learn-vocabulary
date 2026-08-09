@@ -15,6 +15,7 @@
  * dans ce cas il doit porter une `rule` écrite à la main pour l'assumer.
  */
 import WORDS, { categories } from "../src/data/index";
+import USAGE from "../src/data/usage";
 import { inferGender } from "../src/lib/genderRules";
 import { isNoun } from "../src/lib/types";
 
@@ -53,6 +54,15 @@ for (const w of WORDS) {
   } else {
     if (w.artikel) warnings.push(`Article inutile sur un ${w.kind} : ${label}`);
     if (w.kind === "verb" && !w.perfekt) warnings.push(`Parfait non renseigné : ${label}`);
+  }
+}
+
+// Une clé d'usage qui ne correspond à aucun mot serait silencieusement perdue :
+// c'est le genre de faute de frappe qu'on ne voit jamais à l'écran.
+const wordIds = new Set(WORDS.map((w) => w.id));
+for (const id of Object.keys(USAGE)) {
+  if (!wordIds.has(id)) {
+    errors.push(`Usage orphelin : aucun mot ne porte l'identifiant « ${id} »`);
   }
 }
 
