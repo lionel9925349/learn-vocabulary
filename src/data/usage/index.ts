@@ -14,6 +14,7 @@ import adjektive from "./adjektive";
 import divers from "./divers";
 import verben2 from "./verben2";
 import it2 from "./it2";
+import einkauf3 from "./einkauf3";
 
 const MAPS: UsageMap[] = [
   lager,
@@ -31,6 +32,7 @@ const MAPS: UsageMap[] = [
   divers,
   verben2,
   it2,
+  einkauf3,
 ];
 
 /** Table d'usages consolidée, indexée par identifiant de mot. */
