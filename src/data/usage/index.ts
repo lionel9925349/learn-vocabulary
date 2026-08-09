@@ -15,6 +15,11 @@ import divers from "./divers";
 import verben2 from "./verben2";
 import it2 from "./it2";
 import einkauf3 from "./einkauf3";
+import finalEinkauf from "./final-einkauf";
+import finalIt from "./final-it";
+import finalSprache from "./final-sprache";
+import finalLogistik from "./final-logistik";
+import finalBuero from "./final-buero";
 
 const MAPS: UsageMap[] = [
   lager,
@@ -33,6 +38,11 @@ const MAPS: UsageMap[] = [
   verben2,
   it2,
   einkauf3,
+  finalEinkauf,
+  finalIt,
+  finalSprache,
+  finalLogistik,
+  finalBuero,
 ];
 
 /** Table d'usages consolidée, indexée par identifiant de mot. */
