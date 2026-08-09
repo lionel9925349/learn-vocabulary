@@ -7,8 +7,25 @@ import zoll from "./zoll";
 import qualitaet from "./qualitaet";
 import it from "./it";
 import verben from "./verben";
+import produktion from "./produktion";
+import recht from "./recht";
+import buero from "./buero";
+import adjektive from "./adjektive";
 
-const MAPS: UsageMap[] = [lager, transport, gefahrgut, einkauf, zoll, qualitaet, it, verben];
+const MAPS: UsageMap[] = [
+  lager,
+  transport,
+  gefahrgut,
+  einkauf,
+  zoll,
+  qualitaet,
+  it,
+  verben,
+  produktion,
+  recht,
+  buero,
+  adjektive,
+];
 
 /** Table d'usages consolidée, indexée par identifiant de mot. */
 const USAGE: UsageMap = Object.assign({}, ...MAPS);
