@@ -111,10 +111,12 @@ export default function QuizCard({
               key={choice}
               disabled={answered}
               onClick={() => onAnswer(choice)}
+              // Une fois répondu, les choix se compactent : la place gagnée sert
+              // à l'explication et à la phrase d'exemple.
               className={`rounded-lg border-[1.5px] transition active:scale-[0.98] disabled:cursor-default ${
                 longChoices
-                  ? "px-4 py-3.5 text-left text-[15px]"
-                  : "py-4 text-center text-xl font-semibold"
+                  ? `px-4 text-left text-[15px] ${answered ? "py-2" : "py-3.5"}`
+                  : `text-center font-semibold ${answered ? "py-2.5 text-[17px]" : "py-4 text-xl"}`
               }`}
               style={{ background, borderColor, color, opacity }}
             >
@@ -146,6 +148,37 @@ export default function QuizCard({
             className="text-[14px] leading-relaxed bg-paper border-l-[3px] border-gold rounded px-3.5 py-3"
           />
 
+          {/* La phrase montre le mot au travail : sa construction, son registre. */}
+          {question.word.example && (
+            <div className="mt-3 text-[14px] leading-relaxed">
+              <div className="flex items-start justify-between gap-3">
+                <span className="italic">{question.word.example.de}</span>
+                <AudioButton
+                  text={question.word.example.de}
+                  label="▸"
+                  className="shrink-0 !px-2.5"
+                />
+              </div>
+              <div className="text-muted text-[13px] mt-0.5">{question.word.example.fr}</div>
+            </div>
+          )}
+
+          {question.word.collocations && question.word.collocations.length > 0 && (
+            <div className="mt-3">
+              <h4 className="font-ui text-[10px] uppercase tracking-[0.12em] text-muted mb-1">
+                On l&rsquo;emploie avec
+              </h4>
+              <ul>
+                {question.word.collocations.slice(0, 4).map((c) => (
+                  <li key={c.de} className="flex flex-wrap items-baseline gap-x-2 text-[13.5px] py-0.5">
+                    <span className="font-medium">{c.de}</span>
+                    <span className="text-muted italic text-[12.5px]">{c.fr}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <Link
             href={`/mots/${question.word.id}`}
             className="inline-block mt-3 font-ui text-[12.5px] text-muted underline decoration-line hover:text-ink"
@@ -153,13 +186,25 @@ export default function QuizCard({
             Fiche complète de « {question.word.de} » →
           </Link>
 
-          <button
-            onClick={onNext}
-            autoFocus
-            className="font-ui w-full mt-5 text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg active:scale-[0.99]"
-          >
-            {nextLabel}
-          </button>
+          {/* Réserve la place occupée par la barre fixe, pour ne rien masquer. */}
+          <div aria-hidden className="h-20" />
+        </div>
+      )}
+
+      {answered && (
+        <div
+          className="fixed inset-x-0 z-30 px-4 pointer-events-none"
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+        >
+          <div className="max-w-2xl mx-auto pointer-events-auto">
+            <button
+              onClick={onNext}
+              autoFocus
+              className="font-ui w-full text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg shadow-lg active:scale-[0.99]"
+            >
+              {nextLabel}
+            </button>
+          </div>
         </div>
       )}
     </div>

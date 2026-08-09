@@ -55,6 +55,17 @@ export interface Word {
   /** Explication de la règle de genre. Si absente, elle est déduite de la morphologie. */
   rule?: string;
   example?: { de: string; fr: string };
+  /**
+   * Phrases d'usage supplémentaires : le mot au travail, dans plusieurs contextes.
+   */
+  sentences?: { de: string; fr: string }[];
+  /**
+   * Verbes et tournures qui accompagnent habituellement le mot
+   * (einen Auftrag **erteilen**). C'est l'information qui manque le plus à un
+   * francophone : le mot seul ne dit pas avec quel verbe on l'emploie, et la
+   * traduction littérale du français induit en erreur (geben ≠ erteilen).
+   */
+  collocations?: { de: string; fr: string }[];
   note?: string;
 }
 

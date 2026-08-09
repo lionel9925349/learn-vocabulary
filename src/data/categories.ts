@@ -6,6 +6,7 @@ const categories: Category[] = [
   { key: "transport", label: "Transport & Versand", description: "Transport, expédition, fret", group: "Logistik" },
   { key: "zoll", label: "Zoll & Außenhandel", description: "Douane, import/export, incoterms", group: "Logistik" },
   { key: "verpackung", label: "Verpackung", description: "Emballage, étiquetage", group: "Logistik" },
+  { key: "gefahrgut", label: "Gefahrgut", description: "Matières dangereuses, ADR, étiquetage", group: "Logistik" },
   { key: "produktion", label: "Produktion", description: "Production, fabrication, atelier", group: "Logistik" },
   { key: "kennzahlen", label: "Kennzahlen", description: "Indicateurs, mesure de performance", group: "Logistik" },
 

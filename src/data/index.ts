@@ -22,6 +22,8 @@ import buero from "./words/buero";
 import recht from "./words/recht";
 import logistik2 from "./words/logistik2";
 import zoll2 from "./words/zoll2";
+import gefahrgut from "./words/gefahrgut";
+import USAGE, { toPairs } from "./usage";
 
 export { default as categories } from "./categories";
 
@@ -49,6 +51,7 @@ const ALL: Word[] = [
   ...recht,
   ...logistik2,
   ...zoll2,
+  ...gefahrgut,
 ];
 
 /**
@@ -59,6 +62,23 @@ const ALL: Word[] = [
 const byId = new Map<string, Word>();
 for (const w of ALL) {
   if (!byId.has(w.id)) byId.set(w.id, w);
+}
+
+// Les usages (verbes habituels, phrases) sont saisis à part et rattachés ici.
+// La première phrase sert d'exemple principal si le mot n'en avait pas.
+for (const [id, usage] of Object.entries(USAGE)) {
+  const word = byId.get(id);
+  if (!word) continue;
+
+  const sentences = toPairs(usage.s);
+  const collocations = toPairs(usage.v);
+
+  byId.set(id, {
+    ...word,
+    collocations: collocations ?? word.collocations,
+    sentences: sentences ?? word.sentences,
+    example: word.example ?? sentences?.[0],
+  });
 }
 
 const WORDS: Word[] = [...byId.values()];

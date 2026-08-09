@@ -11,6 +11,7 @@ import { ruleFor } from "@/lib/genderRules";
 import QuizCard from "./QuizCard";
 import AudioButton from "./AudioButton";
 import Markup from "./Markup";
+import WordUsage from "./WordUsage";
 
 /** Un mot jamais vu est d'abord présenté, puis testé dans la foulée. */
 type Step = { type: "intro"; word: Word } | { type: "quiz"; question: Question };
@@ -241,12 +242,34 @@ function IntroCard({ word, onNext }: { word: Word; onNext: () => void }) {
         </div>
       )}
 
-      <button
-        onClick={onNext}
-        className="font-ui w-full mt-6 text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg active:scale-[0.99]"
-      >
-        J&rsquo;ai lu — teste-moi →
-      </button>
+      <WordUsage word={word} compact />
+
+      {/* Réserve la hauteur de la barre fixe pour ne rien masquer. */}
+      <div aria-hidden className="h-20" />
+
+      <StickyAction onClick={onNext} label="J'ai lu — teste-moi →" />
+    </div>
+  );
+}
+
+/**
+ * Bouton d'action collé au bas de l'écran : il reste sous le pouce quelle que
+ * soit la longueur de la carte, sans avoir à faire défiler.
+ */
+function StickyAction({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <div
+      className="fixed inset-x-0 z-30 px-4 pointer-events-none"
+      style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+    >
+      <div className="max-w-2xl mx-auto pointer-events-auto">
+        <button
+          onClick={onClick}
+          className="font-ui w-full text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg shadow-lg active:scale-[0.99]"
+        >
+          {label}
+        </button>
+      </div>
     </div>
   );
 }
