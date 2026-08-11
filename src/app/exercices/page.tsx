@@ -9,6 +9,12 @@ export const metadata: Metadata = {
 
 const MODES = [
   {
+    href: "/vocabulaire",
+    title: "Vocabulaire",
+    desc: "Le sens des mots, dans les deux sens. Chaque réponse est suivie de sa définition et de sa décomposition.",
+    accent: "var(--gold)",
+  },
+  {
     href: "/ecrire",
     title: "Écrire en allemand",
     desc: "Sans choix multiples : tu tapes le mot. Le plus exigeant, et celui qui ancre le mieux.",

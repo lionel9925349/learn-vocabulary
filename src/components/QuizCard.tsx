@@ -7,6 +7,7 @@ import { categories } from "@/data";
 import Markup from "./Markup";
 import AudioButton from "./AudioButton";
 import TypedAnswerInput from "./TypedAnswerInput";
+import WordDictionary from "./WordDictionary";
 
 /**
  * Carte de question, partagée par la session de révision et les exercices ciblés.
@@ -151,6 +152,9 @@ export default function QuizCard({
             text={question.explanation}
             className="text-[14px] leading-relaxed bg-paper border-l-[3px] border-gold rounded px-3.5 py-3"
           />
+
+          {/* Le sens du mot, quand la traduction seule ne suffit pas. */}
+          <WordDictionary word={question.word} compact />
 
           {/* La phrase montre le mot au travail : sa construction, son registre. */}
           {question.word.example && (

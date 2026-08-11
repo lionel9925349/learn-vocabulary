@@ -62,7 +62,7 @@ const SUFFIX_RULES: SuffixRule[] = [
  * Lexique des mots simples servant de dernier élément dans les composés.
  * C'est ce qui permet d'expliquer « Wareneingang → der Eingang ».
  */
-const BASE_WORDS: Record<string, { gender: Gender; fr: string }> = {
+export const BASE_WORDS: Record<string, { gender: Gender; fr: string }> = {
   // — der —
   Abruf: { gender: "der", fr: "appel / retrait" },
   Antrag: { gender: "der", fr: "demande" },
@@ -108,7 +108,7 @@ const BASE_WORDS: Record<string, { gender: Gender; fr: string }> = {
   Rat: { gender: "der", fr: "conseil" },
   Raum: { gender: "der", fr: "espace" },
   Rabatt: { gender: "der", fr: "remise" },
-  Satz: { gender: "der", fr: "taux / phrase" },
+  Satz: { gender: "der", fr: "taux / phrase / jeu (ensemble)" },
   Schaden: { gender: "der", fr: "dommage" },
   Schein: { gender: "der", fr: "bon / certificat" },
   Schlag: { gender: "der", fr: "coup" },
@@ -319,7 +319,7 @@ export function explainGender(word: string): GenderExplanation | null {
     return {
       gender: compound.gender,
       source: "compound",
-      text: `Mot composé : le genre suit **toujours le dernier élément** → **${compound.gender} ${compound.base}** (${compound.fr}). C'est la règle la plus rentable de l'allemand : elle couvre la majorité du vocabulaire technique.`,
+      text: `Mot composé : le genre est celui du dernier élément → **${compound.gender} ${compound.base}** (${compound.fr}).`,
     };
   }
   const suffix = findSuffix(word);

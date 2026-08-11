@@ -418,13 +418,19 @@ function frDeQuestion(word: Word, all: Word[]): Question {
   };
 }
 
+/**
+ * Explication d'une question de sens.
+ *
+ * Volontairement sans règle de genre : la question portait sur la traduction,
+ * et l'article est déjà sous les yeux dans la forme complète. La règle du mot
+ * composé, elle, est montrée par la décomposition affichée sous la carte.
+ */
 function buildMeaningExplanation(word: Word): string {
   const parts: string[] = [];
   if (isNoun(word)) {
     parts.push(
       `**${displayForm(word)}** — ${word.fr}${word.plural ? ` · pluriel : die ${word.plural}` : ""}.`
     );
-    parts.push(ruleFor(word));
   } else {
     parts.push(`**${word.de}** — ${word.fr}.`);
     if (word.perfekt) parts.push(`Parfait : **${word.perfekt}**.`);

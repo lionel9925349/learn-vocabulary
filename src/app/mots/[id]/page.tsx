@@ -8,6 +8,8 @@ import { ruleFor } from "@/lib/genderRules";
 import DeclensionTable from "@/components/DeclensionTable";
 import ConjugationTable from "@/components/ConjugationTable";
 import WordUsage from "@/components/WordUsage";
+import WordDictionary from "@/components/WordDictionary";
+import { explainsGender } from "@/lib/compound";
 import WordIllustration, { hasIllustration } from "@/components/WordIllustration";
 import { canConjugate } from "@/lib/conjugation";
 import AudioButton from "@/components/AudioButton";
@@ -101,12 +103,17 @@ export default async function WordPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      {isNoun(word) && (
+      {/* La règle de genre n'est rappelée que si la décomposition ne la montre
+          pas déjà : sur un composé, « Waren·eingang → der Eingang » se lit plus
+          vite que la règle réécrite à chaque fiche. */}
+      {isNoun(word) && !explainsGender(word) && (
         <Markup
           text={ruleFor(word)}
           className="mt-5 text-[14.5px] leading-relaxed bg-paper-2 border-l-[3px] border-gold rounded px-4 py-3"
         />
       )}
+
+      <WordDictionary word={word} />
 
       {word.example && (
         <div className="mt-4 text-[14.5px]">

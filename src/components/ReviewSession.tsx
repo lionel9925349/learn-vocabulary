@@ -12,6 +12,8 @@ import QuizCard from "./QuizCard";
 import AudioButton from "./AudioButton";
 import Markup from "./Markup";
 import WordUsage from "./WordUsage";
+import WordDictionary from "./WordDictionary";
+import { explainsGender } from "@/lib/compound";
 import WordIllustration, { hasIllustration } from "./WordIllustration";
 
 /** Un mot jamais vu est d'abord présenté, puis testé dans la foulée. */
@@ -236,12 +238,15 @@ function IntroCard({ word, onNext }: { word: Word; onNext: () => void }) {
         <AudioButton text={displayForm(word)} label="Prononcer" />
       </div>
 
-      {isNoun(word) && (
+      {/* Sur un composé, la décomposition dit déjà d'où vient le genre. */}
+      {isNoun(word) && !explainsGender(word) && (
         <Markup
           text={ruleFor(word)}
           className="mt-5 text-[14px] leading-relaxed bg-paper border-l-[3px] border-gold rounded px-3.5 py-3"
         />
       )}
+
+      <WordDictionary word={word} compact />
 
       {word.example && (
         <div className="mt-3 text-[14px] text-muted">

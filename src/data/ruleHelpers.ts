@@ -52,8 +52,15 @@ export const RULE_NUR_PLURAL =
 export const RULE_MEMORIZE =
   "Pas de terminaison indicatrice ici : ce genre s'apprend par cœur, avec le mot lui-même.";
 
-/** Mot composé : le genre suit toujours le dernier élément du mot. */
+/**
+ * Mot composé : le genre suit toujours le dernier élément du mot.
+ *
+ * Formulation volontairement brève : cette règle revient sur des centaines de
+ * mots, et une fois qu'elle est acquise, la répéter en trois lignes à chaque
+ * fiche ne fait qu'enterrer le reste. Le détail des éléments est montré à part,
+ * par la décomposition du mot.
+ */
 export function ruleCompound(baseArtikel: Gender, baseWord: string, extra?: string): string {
-  const base = `Mot composé : en allemand, le genre d'un mot composé est **toujours celui de son dernier élément** → **${baseArtikel} ${baseWord}**. C'est la règle la plus rentable : elle s'applique à la majorité du vocabulaire technique.`;
+  const base = `Mot composé : le genre est celui du dernier élément → **${baseArtikel} ${baseWord}**.`;
   return extra ? `${base} ${extra}` : base;
 }

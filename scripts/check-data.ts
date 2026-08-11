@@ -16,6 +16,7 @@
  */
 import WORDS, { categories } from "../src/data/index";
 import USAGE from "../src/data/usage";
+import DEFINITIONS from "../src/data/definitions";
 import { inferGender } from "../src/lib/genderRules";
 import { isNoun } from "../src/lib/types";
 
@@ -63,6 +64,11 @@ const wordIds = new Set(WORDS.map((w) => w.id));
 for (const id of Object.keys(USAGE)) {
   if (!wordIds.has(id)) {
     errors.push(`Usage orphelin : aucun mot ne porte l'identifiant « ${id} »`);
+  }
+}
+for (const id of Object.keys(DEFINITIONS)) {
+  if (!wordIds.has(id)) {
+    errors.push(`Définition orpheline : aucun mot ne porte l'identifiant « ${id} »`);
   }
 }
 

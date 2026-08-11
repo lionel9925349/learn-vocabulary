@@ -54,6 +54,12 @@ export interface Word {
 
   /** Explication de la règle de genre. Si absente, elle est déduite de la morphologie. */
   rule?: string;
+  /**
+   * Définition de dictionnaire, pour les mots dont la traduction française est
+   * elle-même du jargon : savoir que *Skonto* se dit « escompte » ne sert à rien
+   * si l'on ignore ce qu'est un escompte. Voir `data/definitions`.
+   */
+  definition?: string;
   example?: { de: string; fr: string };
   /**
    * Phrases d'usage supplémentaires : le mot au travail, dans plusieurs contextes.

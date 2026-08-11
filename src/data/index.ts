@@ -24,6 +24,7 @@ import logistik2 from "./words/logistik2";
 import zoll2 from "./words/zoll2";
 import gefahrgut from "./words/gefahrgut";
 import USAGE, { toPairs } from "./usage";
+import DEFINITIONS from "./definitions";
 
 export { default as categories } from "./categories";
 
@@ -79,6 +80,12 @@ for (const [id, usage] of Object.entries(USAGE)) {
     sentences: sentences ?? word.sentences,
     example: word.example ?? sentences?.[0],
   });
+}
+
+// Les définitions sont saisies à part, comme les usages, et rattachées ici.
+for (const [id, definition] of Object.entries(DEFINITIONS)) {
+  const word = byId.get(id);
+  if (word) byId.set(id, { ...word, definition });
 }
 
 const WORDS: Word[] = [...byId.values()];
