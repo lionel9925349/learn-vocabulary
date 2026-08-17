@@ -2,29 +2,22 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Word } from "@/lib/types";
+import WORDS from "@/data";
+import categories from "@/data/categories";
 import { displayForm, isNoun } from "@/lib/types";
 import { ruleFor } from "@/lib/genderRules";
 import { recordAnswer } from "@/lib/srsStore";
-import { categories } from "@/data";
+import { availableKinds } from "@/lib/units";
+import { shuffle } from "@/lib/shuffle";
 import AudioButton from "./AudioButton";
 import Markup from "./Markup";
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 /**
  * Révision passive : on voit le mot, on essaie de se rappeler, on retourne la
  * carte. Deux boutons suffisent — « su » / « pas su » alimentent la répétition
  * espacée comme un quiz normal.
  */
-export default function Flashcards({ pool }: { pool: Word[] }) {
+export default function Flashcards() {
   const [category, setCategory] = useState("all");
   const [direction, setDirection] = useState<"de-fr" | "fr-de">("de-fr");
   const [flipped, setFlipped] = useState(false);
@@ -32,16 +25,25 @@ export default function Flashcards({ pool }: { pool: Word[] }) {
   const [reviewed, setReviewed] = useState(0);
 
   const deck = useMemo(() => {
-    const filtered = category === "all" ? pool : pool.filter((w) => w.category === category);
+    const filtered = category === "all" ? WORDS : WORDS.filter((w) => w.category === category);
     return shuffle(filtered);
     // Un nouveau paquet à chaque changement de thème.
-  }, [category, pool]);
+  }, [category]);
 
   const word = deck[index % Math.max(1, deck.length)];
 
+  /**
+   * La carte teste exactement le sens dans le sens affiché : « je savais » sur
+   * une carte DE→FR ne dit rien du pluriel ni de la déclinaison. On crédite donc
+   * la facette correspondante, et elle seule — c'est ce qui empêche d'atteindre
+   * « maîtrisé » à coups de cartes retournées.
+   */
   function grade(known: boolean) {
     if (!word) return;
-    recordAnswer(word.id, known);
+    // Repli sur "de-fr" : une expression n'a pas toujours les deux facettes.
+    const kinds = availableKinds(word);
+    const kind = kinds.includes(direction) ? direction : kinds[0];
+    recordAnswer(word.id, kind, known);
     setReviewed((r) => r + 1);
     setFlipped(false);
     setIndex((i) => i + 1);
@@ -99,7 +101,8 @@ export default function Flashcards({ pool }: { pool: Word[] }) {
 
       <button
         onClick={() => setFlipped((f) => !f)}
-        className="w-full text-left bg-paper-2 border border-line rounded-lg px-5 py-10 min-h-[240px] flex flex-col items-center justify-center active:scale-[0.995] transition"
+        aria-expanded={flipped}
+        className="w-full text-left bg-paper-2 border border-line rounded-lg px-5 py-10 min-h-[240px] flex flex-col items-center justify-center motion-safe:active:scale-[0.995] transition"
       >
         {!flipped ? (
           <>
@@ -152,6 +155,7 @@ export default function Flashcards({ pool }: { pool: Word[] }) {
         <AudioButton text={displayForm(word)} label="Prononcer" />
         <Link
           href={`/mots/${word.id}`}
+          prefetch={false}
           className="font-ui text-[12px] px-3 py-2 rounded-full border border-line text-muted hover:border-ink hover:text-ink transition"
         >
           Fiche →
@@ -161,15 +165,15 @@ export default function Flashcards({ pool }: { pool: Word[] }) {
       <div className="grid grid-cols-2 gap-2.5 mt-4">
         <button
           onClick={() => grade(false)}
-          className="font-ui text-[13px] font-semibold uppercase tracking-[0.06em] py-4 rounded-lg border-[1.5px] text-white active:scale-[0.98] transition"
-          style={{ background: "var(--die)", borderColor: "var(--die)" }}
+          className="font-ui text-[13px] font-semibold uppercase tracking-[0.06em] py-4 rounded-lg border-[1.5px] motion-safe:active:scale-[0.98] transition"
+          style={{ background: "var(--die)", borderColor: "var(--die)", color: "var(--on-accent)" }}
         >
           À revoir
         </button>
         <button
           onClick={() => grade(true)}
-          className="font-ui text-[13px] font-semibold uppercase tracking-[0.06em] py-4 rounded-lg border-[1.5px] text-white active:scale-[0.98] transition"
-          style={{ background: "var(--das)", borderColor: "var(--das)" }}
+          className="font-ui text-[13px] font-semibold uppercase tracking-[0.06em] py-4 rounded-lg border-[1.5px] motion-safe:active:scale-[0.98] transition"
+          style={{ background: "var(--das)", borderColor: "var(--das)", color: "var(--on-accent)" }}
         >
           Je savais
         </button>

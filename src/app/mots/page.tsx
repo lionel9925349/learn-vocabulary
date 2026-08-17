@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import WordBrowser from "@/components/WordBrowser";
-import WORDS from "@/data";
 
 export const metadata: Metadata = {
   title: "Vocabulaire — Logistik & IT",
@@ -28,7 +27,7 @@ export default function MotsPage() {
         </span>
       </Link>
       <Suspense fallback={null}>
-        <WordBrowser words={WORDS} />
+        <WordBrowser />
       </Suspense>
     </div>
   );

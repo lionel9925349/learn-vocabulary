@@ -55,6 +55,11 @@ const SUFFIX_RULES: SuffixRule[] = [
   // une personne (der Lieferant), mais neutres sinon (das Kontingent, das Patent).
   // La morphologie seule ne permet pas de trancher — ces mots portent leur règle à la main.
   { suffix: "or", gender: "der", strength: "strong", note: "presque toujours", examples: "der Motor, der Sensor, der Faktor" },
+  // -tor est écrit séparément de -or, et volontairement : le lexique des bases
+  // contient « das Tor » (le quai), qui termine *tous* ces mots. Sans une règle
+  // de terminaison au moins aussi longue que la base, Monitor, Direktor,
+  // Faktor et Traktor étaient déduits « das » — voir le départage plus bas.
+  { suffix: "tor", gender: "der", strength: "strong", note: "noms d'agent ou d'appareil venus du latin", examples: "der Monitor, der Motor, der Direktor" },
   { suffix: "ling", gender: "der", strength: "absolute", note: "sans exception", examples: "der Lehrling, der Prüfling" },
 ];
 
@@ -303,26 +308,28 @@ function findSuffix(word: string): SuffixRule | null {
   return null;
 }
 
-/** Genre déduit de la morphologie, ou null si le mot ne suit aucune règle connue. */
-export function inferGender(word: string): Gender | null {
+/**
+ * Départage composition et terminaison quand les deux s'appliquent.
+ *
+ * La composition passait systématiquement en premier, ce qui marche tant que la
+ * base reconnue est plus informative que la terminaison — *Waren·eingang* vaut
+ * mieux que « -ang ». Mais « das Tor » termine *Monitor*, *Direktor*, *Faktor*,
+ * *Traktor*, *Rotor* : la base attrapait tout et en faisait des neutres, alors
+ * que ce sont des masculins en -tor. On garde donc le plus long des deux
+ * indices, et la terminaison l'emporte à égalité — un suffixe qui couvre
+ * exactement la base est justement le signe que la base est un faux ami.
+ */
+function bestRule(word: string): GenderExplanation | null {
   const compound = findCompoundBase(word);
-  if (compound) return compound.gender;
   const suffix = findSuffix(word);
-  if (suffix) return suffix.gender;
-  return null;
-}
 
-/** Explication pédagogique déduite, ou null s'il n'y a pas de règle applicable. */
-export function explainGender(word: string): GenderExplanation | null {
-  const compound = findCompoundBase(word);
-  if (compound) {
+  if (compound && (!suffix || compound.base.length > suffix.suffix.length)) {
     return {
       gender: compound.gender,
       source: "compound",
       text: `Mot composé : le genre est celui du dernier élément → **${compound.gender} ${compound.base}** (${compound.fr}).`,
     };
   }
-  const suffix = findSuffix(word);
   if (suffix) {
     return {
       gender: suffix.gender,
@@ -331,6 +338,16 @@ export function explainGender(word: string): GenderExplanation | null {
     };
   }
   return null;
+}
+
+/** Genre déduit de la morphologie, ou null si le mot ne suit aucune règle connue. */
+export function inferGender(word: string): Gender | null {
+  return bestRule(word)?.gender ?? null;
+}
+
+/** Explication pédagogique déduite, ou null s'il n'y a pas de règle applicable. */
+export function explainGender(word: string): GenderExplanation | null {
+  return bestRule(word);
 }
 
 const MEMORIZE =

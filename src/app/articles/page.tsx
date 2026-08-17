@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import TargetedQuiz from "@/components/TargetedQuiz";
-import WORDS from "@/data";
 
 export const metadata: Metadata = {
   title: "der, die oder das ? — Articles",
@@ -14,7 +13,7 @@ export default function ArticlesPage() {
         der, die ou das ? Chaque erreur revient plus loin dans la série et remonte dans ta
         file de révision.
       </p>
-      <TargetedQuiz pool={WORDS} kind="article" />
+      <TargetedQuiz kind="article" />
     </div>
   );
 }

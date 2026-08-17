@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import WORDS from "@/data";
 import type { Word } from "@/lib/types";
 import { displayForm, isNoun } from "@/lib/types";
-import { buildSession, computeStats } from "@/lib/srs";
+import { buildSession, computeStats, wordState } from "@/lib/srs";
 import { useSrs, recordAnswer } from "@/lib/srsStore";
+import type { Unit } from "@/lib/units";
 import { buildQuestion, evaluate, type Question } from "@/lib/quiz";
 import { ruleFor } from "@/lib/genderRules";
 import QuizCard from "./QuizCard";
@@ -17,13 +19,18 @@ import { explainsGender } from "@/lib/compound";
 import WordIllustration, { hasIllustration } from "./WordIllustration";
 
 /** Un mot jamais vu est d'abord présenté, puis testé dans la foulée. */
-type Step = { type: "intro"; word: Word } | { type: "quiz"; question: Question };
+type Step =
+  | { type: "intro"; word: Word }
+  | { type: "quiz"; unit: Unit; question: Question; repeat?: boolean };
 
 type Phase = "idle" | "running" | "done";
 
 const SIZES = [10, 20, 40];
 
-export default function ReviewSession({ pool }: { pool: Word[] }) {
+/** Combien de questions plus loin une facette ratée revient dans la même session. */
+const REPEAT_GAP = 3;
+
+export default function ReviewSession() {
   const srs = useSrs();
   const [phase, setPhase] = useState<Phase>("idle");
   const [size, setSize] = useState(20);
@@ -32,17 +39,21 @@ export default function ReviewSession({ pool }: { pool: Word[] }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [results, setResults] = useState<{ word: Word; correct: boolean }[]>([]);
 
-  const stats = useMemo(() => computeStats(srs, pool), [srs, pool]);
+  const stats = useMemo(() => computeStats(srs, WORDS), [srs]);
 
   function start() {
-    const plan = buildSession(srs, pool, size);
-    if (plan.words.length === 0) return;
+    const plan = buildSession(srs, WORDS, size);
+    if (plan.units.length === 0) return;
 
     const built: Step[] = [];
-    for (const word of plan.words) {
-      // Premier contact : on montre le mot avant d'interroger dessus.
-      if (!srs.cards[word.id]) built.push({ type: "intro", word });
-      built.push({ type: "quiz", question: buildQuestion(word, pool) });
+    const introduced = new Set<string>();
+    for (const unit of plan.units) {
+      // Premier contact avec le mot : on le montre avant d'interroger dessus.
+      if (wordState(srs, unit.word).seenKinds === 0 && !introduced.has(unit.word.id)) {
+        introduced.add(unit.word.id);
+        built.push({ type: "intro", word: unit.word });
+      }
+      built.push({ type: "quiz", unit, question: buildQuestion(unit.word, WORDS, unit.kind) });
     }
 
     setSteps(built);
@@ -57,8 +68,25 @@ export default function ReviewSession({ pool }: { pool: Word[] }) {
     if (step.type !== "quiz" || selected !== null) return;
     setSelected(choice);
     const { correct } = evaluate(step.question, choice);
-    recordAnswer(step.question.word.id, correct);
-    setResults((r) => [...r, { word: step.question.word, correct }]);
+    recordAnswer(step.unit.word.id, step.unit.kind, correct);
+    setResults((r) => [...r, { word: step.unit.word, correct }]);
+
+    // La boîte 0 vaut « dans dix minutes » : une facette ratée doit donc
+    // repasser avant la fin de la session, pas la semaine suivante. Une seule
+    // reprise, sinon on tournerait en boucle sur le mot qui résiste.
+    if (!correct && !step.repeat) {
+      setSteps((prev) => {
+        const next = [...prev];
+        const at = Math.min(index + REPEAT_GAP, next.length);
+        next.splice(at, 0, {
+          type: "quiz",
+          unit: step.unit,
+          question: buildQuestion(step.unit.word, WORDS, step.unit.kind),
+          repeat: true,
+        });
+        return next;
+      });
+    }
   }
 
   function next() {
@@ -77,7 +105,7 @@ export default function ReviewSession({ pool }: { pool: Word[] }) {
         size={size}
         onSize={setSize}
         onStart={start}
-        available={stats.dueNow + stats.untouched}
+        available={stats.dueNow + stats.newUnits}
       />
     );
   }
@@ -89,7 +117,7 @@ export default function ReviewSession({ pool }: { pool: Word[] }) {
   const step = steps[index];
   const quizCount = steps.filter((s) => s.type === "quiz").length;
   const quizDone = results.length;
-  const progress = quizCount === 0 ? 0 : (quizDone / quizCount) * 100;
+  const progress = quizCount === 0 ? 0 : Math.round((quizDone / quizCount) * 100);
 
   return (
     <div>
@@ -101,8 +129,15 @@ export default function ReviewSession({ pool }: { pool: Word[] }) {
           Terminer
         </button>
       </div>
-      <div className="h-[3px] bg-line rounded overflow-hidden mb-5">
-        <div className="h-full bg-ink transition-all duration-300" style={{ width: `${progress}%` }} />
+      <div
+        className="h-[3px] bg-line rounded overflow-hidden mb-5"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={quizCount}
+        aria-valuenow={quizDone}
+        aria-label="Avancement de la session"
+      >
+        <div className="h-full bg-ink motion-safe:transition-all duration-300" style={{ width: `${progress}%` }} />
       </div>
 
       {step.type === "intro" ? (
@@ -137,7 +172,7 @@ function StartScreen({
     <div>
       <div className="grid grid-cols-3 gap-2.5 mb-6">
         <Stat value={stats.dueNow} label="à revoir" accent="var(--die)" />
-        <Stat value={stats.untouched} label="jamais vus" accent="var(--der)" />
+        <Stat value={stats.untouched} label="mots jamais vus" accent="var(--der)" />
         <Stat value={stats.mastered} label="maîtrisés" accent="var(--das)" />
       </div>
 
@@ -147,8 +182,8 @@ function StartScreen({
         </h2>
         <p className="text-muted text-[14.5px] mb-5">
           {stats.dueNow > 0
-            ? `${stats.dueNow} mot${stats.dueNow > 1 ? "s" : ""} arrive${stats.dueNow > 1 ? "nt" : ""} à échéance. La session mélange articles, traductions, pluriels et déclinaisons.`
-            : "Une session courte suffit : les mots ratés reviendront plus souvent, les mots sus s'espaceront."}
+            ? `${stats.dueNow} question${stats.dueNow > 1 ? "s" : ""} arrive${stats.dueNow > 1 ? "nt" : ""} à échéance. La session mélange articles, traductions, pluriels et déclinaisons.`
+            : "Une session courte suffit : ce que tu rates revient plus souvent, ce que tu sais s'espace."}
         </p>
 
         <div className="font-ui text-[11px] uppercase tracking-[0.14em] text-muted mb-2">
@@ -159,6 +194,7 @@ function StartScreen({
             <button
               key={n}
               onClick={() => onSize(n)}
+              aria-pressed={size === n}
               className={`font-ui text-[13px] px-5 py-2.5 rounded-full border transition ${
                 size === n ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
               }`}
@@ -171,7 +207,7 @@ function StartScreen({
         <button
           onClick={onStart}
           disabled={available === 0}
-          className="font-ui w-full text-[14px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg active:scale-[0.99] disabled:opacity-40"
+          className="font-ui w-full text-[14px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg motion-safe:active:scale-[0.99] disabled:opacity-40"
         >
           {available === 0 ? "Tout est à jour — reviens plus tard" : "Commencer →"}
         </button>
@@ -278,7 +314,7 @@ function StickyAction({ onClick, label }: { onClick: () => void; label: string }
       <div className="max-w-2xl mx-auto pointer-events-auto">
         <button
           onClick={onClick}
-          className="font-ui w-full text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg shadow-lg active:scale-[0.99]"
+          className="font-ui w-full text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg shadow-lg motion-safe:active:scale-[0.99]"
         >
           {label}
         </button>
@@ -295,8 +331,18 @@ function Summary({
   onRestart: () => void;
 }) {
   const correct = results.filter((r) => r.correct).length;
-  const missed = results.filter((r) => !r.correct);
   const rate = results.length ? Math.round((correct / results.length) * 100) : 0;
+
+  // Un mot peut avoir été raté puis repris dans la session : on ne le liste
+  // qu'une fois, et seulement s'il est resté en échec.
+  const missed = useMemo(() => {
+    const byWord = new Map<string, { word: Word; ok: boolean }>();
+    for (const r of results) {
+      const prev = byWord.get(r.word.id);
+      byWord.set(r.word.id, { word: r.word, ok: (prev?.ok ?? false) || r.correct });
+    }
+    return [...byWord.values()].filter((e) => !e.ok).map((e) => e.word);
+  }, [results]);
 
   return (
     <div className="bg-paper-2 border border-line rounded-lg px-5 py-8 text-center">
@@ -309,9 +355,9 @@ function Summary({
       </div>
       <p className="text-muted text-[14.5px] mt-2 max-w-sm mx-auto">
         {rate >= 90
-          ? "Excellent. Ces mots s'espacent maintenant dans le temps."
+          ? "Excellent. Ces questions s'espacent maintenant dans le temps."
           : rate >= 70
-            ? "Bon rythme. Les mots ratés reviendront très vite."
+            ? "Bon rythme. Ce qui a été raté reviendra très vite."
             : "C'est en butant dessus qu'on les retient — ils reviennent bientôt."}
       </p>
 
@@ -321,18 +367,18 @@ function Summary({
             À revoir en priorité
           </h3>
           <ul>
-            {missed.map((m, i) => (
-              <li key={`${m.word.id}-${i}`} className="py-2 border-b border-line">
-                <Link href={`/mots/${m.word.id}`} className="block hover:text-gold">
+            {missed.map((word) => (
+              <li key={word.id} className="py-2 border-b border-line">
+                <Link href={`/mots/${word.id}`} prefetch={false} className="block hover:text-gold">
                   <span className="block">
-                    {isNoun(m.word) && m.word.artikel && (
-                      <span className="font-semibold" style={{ color: `var(--${m.word.artikel})` }}>
-                        {m.word.artikel}{" "}
+                    {isNoun(word) && word.artikel && (
+                      <span className="font-semibold" style={{ color: `var(--${word.artikel})` }}>
+                        {word.artikel}{" "}
                       </span>
                     )}
-                    {m.word.de}
+                    {word.de}
                   </span>
-                  <span className="block text-muted italic text-[13.5px] mt-0.5">{m.word.fr}</span>
+                  <span className="block text-muted italic text-[13.5px] mt-0.5">{word.fr}</span>
                 </Link>
               </li>
             ))}
@@ -342,7 +388,7 @@ function Summary({
 
       <button
         onClick={onRestart}
-        className="font-ui mt-7 w-full max-w-xs mx-auto block text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg active:scale-[0.99]"
+        className="font-ui mt-7 w-full max-w-xs mx-auto block text-[13px] font-semibold tracking-[0.06em] uppercase py-4 bg-ink text-paper rounded-lg motion-safe:active:scale-[0.99]"
       >
         Nouvelle session →
       </button>

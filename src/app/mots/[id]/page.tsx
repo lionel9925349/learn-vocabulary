@@ -127,7 +127,7 @@ export default async function WordPage({ params }: { params: Promise<{ id: strin
 
       <WordUsage word={word} />
 
-      <WordProgress wordId={word.id} />
+      <WordProgress word={word} />
 
       {canConjugate(word) && (
         <>

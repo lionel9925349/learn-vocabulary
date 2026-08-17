@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import TargetedQuiz from "@/components/TargetedQuiz";
-import WORDS from "@/data";
 
 export const metadata: Metadata = {
   title: "Écrire en allemand — rappel actif",
@@ -14,7 +13,7 @@ export default function EcrirePage() {
         Sans choix multiples : le mot doit sortir de ta mémoire. C&rsquo;est l&rsquo;exercice
         le plus exigeant, et celui qui ancre le mieux.
       </p>
-      <TargetedQuiz pool={WORDS} kind="type-de" />
+      <TargetedQuiz kind="type-de" />
     </div>
   );
 }

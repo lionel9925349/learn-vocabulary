@@ -8,29 +8,14 @@
  * comme fausse.
  */
 
+import { foldGerman, normalize } from "./text";
+
 export type AnswerVerdict = "correct" | "almost" | "wrong";
 
 export interface AnswerCheck {
   verdict: AnswerVerdict;
   /** Précision affichée quand la réponse est acceptée malgré une imperfection. */
   note?: string;
-}
-
-/** Translittération des caractères allemands, pour comparer sans pénaliser le clavier. */
-function foldGerman(s: string): string {
-  return s
-    .replace(/ä/g, "ae")
-    .replace(/ö/g, "oe")
-    .replace(/ü/g, "ue")
-    .replace(/ß/g, "ss");
-}
-
-function normalize(s: string): string {
-  return s
-    .trim()
-    .toLowerCase()
-    .replace(/[.,;:!?]/g, "")
-    .replace(/\s+/g, " ");
 }
 
 /** Comparaison stricte au sens de l'allemand (accents et casse compris). */

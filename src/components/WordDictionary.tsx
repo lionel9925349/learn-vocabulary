@@ -56,6 +56,7 @@ export default function WordDictionary({ word, compact = false }: { word: Word; 
                   {id ? (
                     <Link
                       href={`/mots/${id}`}
+                      prefetch={false}
                       lang="de"
                       className="text-[14px] font-medium underline decoration-line underline-offset-2 hover:text-gold"
                     >

@@ -3,7 +3,9 @@ import { isNoun, displayForm } from "./types";
 import { CASE_INFO, CASES, articleFor, nounForm, type CaseName } from "./declension";
 import { ruleFor } from "./genderRules";
 import { checkAnswer, type AcceptedForm } from "./answerCheck";
-import { canConjugate, conjugatePresent } from "./conjugation";
+import { conjugatePresent } from "./conjugation";
+import { shuffle, pick } from "./shuffle";
+import { KIND_LABELS, availableKinds, type QuestionKind } from "./units";
 import {
   ALL_ENDINGS,
   DECLENSION_LABELS,
@@ -17,26 +19,11 @@ import {
   type NumberGender,
 } from "./adjectiveDeclension";
 
-export type QuestionKind =
-  | "article"
-  | "de-fr"
-  | "fr-de"
-  | "plural"
-  | "declension"
-  | "type-de"
-  | "adjective"
-  | "conjugation";
-
-export const KIND_LABELS: Record<QuestionKind, string> = {
-  article: "Quel article ?",
-  "de-fr": "Que signifie ce mot ?",
-  "fr-de": "Comment le dit-on en allemand ?",
-  plural: "Quel est le pluriel ?",
-  declension: "Quelle forme de l'article ?",
-  "type-de": "Écris-le en allemand",
-  adjective: "Quelle terminaison d'adjectif ?",
-  conjugation: "Conjugue au présent",
-};
+// Le type de question et la liste des facettes d'un mot vivent dans `units.ts` :
+// la répétition espacée en a besoin sans rien connaître de la fabrication des
+// questions. On les réexporte ici pour les appelants historiques.
+export { KIND_LABELS, availableKinds };
+export type { QuestionKind };
 
 export interface Question {
   kind: QuestionKind;
@@ -83,19 +70,6 @@ export function evaluate(question: Question, answer: string): Evaluation {
     correct: result.verdict === "correct" || result.verdict === "almost",
     note: result.note,
   };
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 /** Distracteurs pris en priorité dans le même thème : plus exigeant et plus utile. */
@@ -168,20 +142,6 @@ const SENTENCES: Record<CaseName, Frame[]> = {
     { build: (a, n) => `Innerhalb ${a} ${n} muss geliefert werden.`, hint: "après « innerhalb », qui gouverne le génitif" },
   ],
 };
-
-/** Types de questions possibles pour un mot donné. */
-export function availableKinds(word: Word): QuestionKind[] {
-  const kinds: QuestionKind[] = ["de-fr", "fr-de"];
-  // Les expressions entières sont trop longues à taper sur un téléphone.
-  if (word.kind !== "phrase") kinds.push("type-de");
-  if (isNoun(word) && word.artikel) {
-    kinds.push("article", "declension");
-    if (word.plural) kinds.push("plural");
-  }
-  if (word.kind === "adjective" && word.attributive) kinds.push("adjective");
-  if (canConjugate(word)) kinds.push("conjugation");
-  return kinds;
-}
 
 /** Conjugaison : une personne est demandée, les autres servent de distracteurs. */
 function conjugationQuestion(word: Word): Question {

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Flashcards from "@/components/Flashcards";
-import WORDS from "@/data";
 
 export const metadata: Metadata = {
   title: "Cartes mémoire",
@@ -13,7 +12,7 @@ export default function FlashcardsPage() {
       <p className="text-muted italic text-[14.5px] mb-6">
         Sans quiz : tu regardes, tu te rappelles, tu retournes la carte.
       </p>
-      <Flashcards pool={WORDS} />
+      <Flashcards />
     </div>
   );
 }

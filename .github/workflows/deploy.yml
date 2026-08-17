@@ -30,6 +30,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Publier sans vérifier revenait à mettre en ligne une faute d'article
+      # sans que rien ne l'arrête : les trois contrôles existaient déjà, ils
+      # n'étaient simplement branchés nulle part.
+      - name: Lint
+        run: npm run lint
+
+      - name: Cohérence du vocabulaire
+        run: npm run check:data
+
+      - name: Tests
+        run: npm test
+
       - name: Build (static export)
         run: npm run build
 

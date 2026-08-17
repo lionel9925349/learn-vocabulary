@@ -2,37 +2,44 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Word } from "@/lib/types";
-import { BOX_COUNT, BOX_LABELS, computeStats, todayKey } from "@/lib/srs";
+import WORDS from "@/data";
+import categories from "@/data/categories";
+import { BOX_COUNT, BOX_LABELS, computeStats, todayKey, wordState } from "@/lib/srs";
+import { availableKinds, cardKey } from "@/lib/units";
 import { useSrs, resetProgress } from "@/lib/srsStore";
-import { categories } from "@/data";
 import BackupPanel from "./BackupPanel";
 
-export default function ProgressDashboard({ pool }: { pool: Word[] }) {
+export default function ProgressDashboard() {
   const srs = useSrs();
   const [confirmReset, setConfirmReset] = useState(false);
 
-  const stats = useMemo(() => computeStats(srs, pool), [srs, pool]);
+  const stats = useMemo(() => computeStats(srs, WORDS), [srs]);
 
+  /** Répartition des facettes (et non des mots) dans les paliers d'intervalle. */
   const boxCounts = useMemo(() => {
     const counts = new Array<number>(BOX_COUNT).fill(0);
-    for (const w of pool) {
-      const card = srs.cards[w.id];
-      if (card) counts[Math.min(card.box, BOX_COUNT - 1)]++;
+    for (const w of WORDS) {
+      for (const kind of availableKinds(w)) {
+        const card = srs.cards[cardKey(w.id, kind)];
+        if (card) counts[Math.min(card.box, BOX_COUNT - 1)]++;
+      }
     }
     return counts;
-  }, [srs, pool]);
+  }, [srs]);
 
   const perCategory = useMemo(() => {
     return categories
       .map((c) => {
-        const words = pool.filter((w) => w.category === c.key);
-        const known = words.filter((w) => (srs.cards[w.id]?.box ?? 0) >= 3).length;
+        const words = WORDS.filter((w) => w.category === c.key);
+        const known = words.filter((w) => {
+          const s = wordState(srs, w).status;
+          return s === "known" || s === "mastered";
+        }).length;
         return { ...c, total: words.length, known };
       })
       .filter((c) => c.total > 0)
       .sort((a, b) => b.known / b.total - a.known / a.total);
-  }, [srs, pool]);
+  }, [srs]);
 
   const last14 = useMemo(() => buildHistory(srs.history, 14), [srs.history]);
   const maxDay = Math.max(1, ...last14.map((d) => d.count));
@@ -80,10 +87,20 @@ export default function ProgressDashboard({ pool }: { pool: Word[] }) {
             <>
               {" "}
               <Link href="/" className="underline decoration-line hover:text-ink">
-                {stats.dueNow} mot{stats.dueNow > 1 ? "s" : ""} à revoir maintenant →
+                {stats.dueNow} question{stats.dueNow > 1 ? "s" : ""} à revoir maintenant →
               </Link>
             </>
           )}
+        </p>
+        {/* Un mot compte pour plusieurs questions : article, pluriel, sens,
+            déclinaison… « Maîtrisé » veut dire que toutes tiennent, pas une. */}
+        <p className="text-[13px] text-muted mt-2 leading-relaxed">
+          Chaque mot se travaille sous plusieurs angles :{" "}
+          <b className="text-ink">
+            {stats.unitsSeen} / {stats.unitsTotal}
+          </b>{" "}
+          questions déjà posées. Un mot n&rsquo;est « maîtrisé » que lorsque toutes les
+          siennes sont au dernier palier.
         </p>
       </div>
 
@@ -108,6 +125,9 @@ export default function ProgressDashboard({ pool }: { pool: Word[] }) {
         <span>il y a 14 jours</span>
         <span>aujourd&rsquo;hui</span>
       </div>
+      <p className="sr-only">
+        Révisions des 14 derniers jours : {last14.map((d) => `${d.key} : ${d.count}`).join(", ")}.
+      </p>
 
       <h2 className="font-ui text-[11px] uppercase tracking-[0.14em] text-muted mt-9 mb-3">
         Échéancier de mémorisation
@@ -119,7 +139,11 @@ export default function ProgressDashboard({ pool }: { pool: Word[] }) {
               Intervalle : {BOX_LABELS[i]}
             </span>
             <span className="flex items-center gap-2 min-w-0 flex-1 justify-end">
-              <span className="h-1.5 rounded-full bg-der max-w-[60%]" style={{ width: `${(count / Math.max(1, touched)) * 100}%` }} />
+              <span
+                aria-hidden
+                className="h-1.5 rounded-full bg-der max-w-[60%]"
+                style={{ width: `${(count / Math.max(1, stats.unitsSeen)) * 100}%` }}
+              />
               <b className="text-[14px] w-8 text-right">{count}</b>
             </span>
           </li>
@@ -167,8 +191,8 @@ export default function ProgressDashboard({ pool }: { pool: Word[] }) {
                 resetProgress();
                 setConfirmReset(false);
               }}
-              className="font-ui text-[12.5px] px-4 py-2.5 rounded-lg text-white"
-              style={{ background: "var(--die)" }}
+              className="font-ui text-[12.5px] px-4 py-2.5 rounded-lg"
+              style={{ background: "var(--die)", color: "var(--on-accent)" }}
             >
               Confirmer l&rsquo;effacement
             </button>
@@ -217,7 +241,7 @@ function BigStat({
 function Legend({ color, label }: { color: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <i className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+      <i aria-hidden className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
       {label}
     </span>
   );

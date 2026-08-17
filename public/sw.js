@@ -8,30 +8,38 @@
  *
  * Tout le vocabulaire est embarqué dans le JavaScript : une fois l'app chargée,
  * il n'y a plus aucun appel réseau nécessaire pour réviser.
+ *
+ * ⚠ Les deux constantes ci-dessous sont **réécrites au build** par
+ * `scripts/generate-sw.mjs`, qui lit la liste réelle des pages produites et
+ * calcule une empreinte du build. Les tenir à jour à la main ne marchait pas :
+ * la liste précédente précachait une route « /reviser/ » qui n'existait plus et
+ * oubliait sept pages d'exercices, si bien que « hors-ligne complet » n'était
+ * vrai que pour la moitié de l'application. Les valeurs écrites ici servent de
+ * repli en développement, où le service worker n'est de toute façon pas activé.
  */
 
-const VERSION = "v2";
+const VERSION = "dev";
+const PRECACHE_PATHS = ["/"];
+
 const CACHE = `artikel-trainer-${VERSION}`;
 
 // Racine de l'app : "/learn-vocabulary" sur GitHub Pages, "" en local.
 const BASE = self.location.pathname.replace(/\/sw\.js$/, "");
 
-const PRECACHE = [
-  `${BASE}/`,
-  `${BASE}/reviser/`,
-  `${BASE}/exercices/`,
-  `${BASE}/mots/`,
-  `${BASE}/progres/`,
-  `${BASE}/manifest.webmanifest`,
-  `${BASE}/icons/icon-192.png`,
-];
+const PRECACHE = PRECACHE_PATHS.map((p) => `${BASE}${p}`);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE);
       // Une ressource manquante ne doit pas faire échouer toute l'installation.
-      await Promise.allSettled(PRECACHE.map((url) => cache.add(url)));
+      const results = await Promise.allSettled(PRECACHE.map((url) => cache.add(url)));
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed > 0) {
+        // Visible dans la console de l'app installée : c'est le seul endroit où
+        // une liste de précache devenue fausse se voit.
+        console.warn(`[sw] ${failed}/${PRECACHE.length} ressources non précachées`);
+      }
       await self.skipWaiting();
     })()
   );

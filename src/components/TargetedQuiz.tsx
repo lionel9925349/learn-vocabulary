@@ -1,57 +1,79 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Word } from "@/lib/types";
-import { buildQuestion, availableKinds, evaluate, type Question, type QuestionKind } from "@/lib/quiz";
-import { recordAnswer } from "@/lib/srsStore";
-import { categories } from "@/data";
+import WORDS from "@/data";
+import categories from "@/data/categories";
+import { buildQuestion, evaluate, type Question } from "@/lib/quiz";
+import { availableKinds, cardKey, type QuestionKind, type Unit } from "@/lib/units";
+import { recordAnswer, useSrs } from "@/lib/srsStore";
+import { pick, shuffle } from "@/lib/shuffle";
 import QuizCard from "./QuizCard";
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 /**
  * Exercice ciblé sur un type de question (articles, déclinaisons…) ou sur un
  * petit groupe de types — le vocabulaire alterne ainsi allemand → français et
  * français → allemand sans qu'on ait à choisir.
  *
- * Les réponses alimentent la même répétition espacée que la session principale.
+ * Les réponses alimentent la même répétition espacée que la session principale,
+ * et le tirage suit la même priorité : ce qui est dû, puis ce qui n'a jamais
+ * été posé, puis le reste.
  */
 export default function TargetedQuiz({
-  pool,
   kind,
 }: {
-  pool: Word[];
   kind: QuestionKind | QuestionKind[];
 }) {
+  const srs = useSrs();
   const [category, setCategory] = useState("all");
 
   const kinds = useMemo(() => (Array.isArray(kind) ? kind : [kind]), [kind]);
 
-  /** Le mot ne se prête pas forcément à tous les types demandés : on tire parmi les siens. */
-  const ask = useCallback(
-    (word: Word): Question => {
-      const usable = kinds.filter((k) => availableKinds(word).includes(k));
-      return buildQuestion(word, pool, usable[Math.floor(Math.random() * usable.length)]);
+  const eligible = useMemo(() => {
+    const byKind = WORDS.filter((w) => {
+      const own = availableKinds(w);
+      return kinds.some((k) => own.includes(k));
+    });
+    return category === "all" ? byKind : byKind.filter((w) => w.category === category);
+  }, [kinds, category]);
+
+  /**
+   * Tirage prioritaire : ce qui est arrivé à échéance, sinon ce qui n'a jamais
+   * été posé, sinon n'importe quoi. C'est la même règle que la session de
+   * révision, appliquée au sous-ensemble de types demandé par l'exercice.
+   */
+  const nextUnit = useCallback(
+    (list: typeof WORDS): Unit | null => {
+      const now = Date.now();
+      const due: Unit[] = [];
+      const fresh: Unit[] = [];
+      const rest: Unit[] = [];
+
+      for (const word of list) {
+        const own = availableKinds(word);
+        for (const k of kinds) {
+          if (!own.includes(k)) continue;
+          const card = srs.cards[cardKey(word.id, k)];
+          if (!card) fresh.push({ word, kind: k });
+          else if (card.due <= now) due.push({ word, kind: k });
+          else rest.push({ word, kind: k });
+        }
+      }
+
+      const bucket = due.length ? due : fresh.length ? fresh : rest;
+      return bucket.length ? pick(bucket) : null;
     },
-    [kinds, pool]
+    [kinds, srs]
   );
 
-  const eligible = useMemo(() => {
-    const byKind = pool.filter((w) => kinds.some((k) => availableKinds(w).includes(k)));
-    return category === "all" ? byKind : byKind.filter((w) => w.category === category);
-  }, [pool, kinds, category]);
+  const ask = useCallback(
+    (unit: Unit): Question => buildQuestion(unit.word, WORDS, unit.kind),
+    []
+  );
 
   // La première question est tirée après le montage, pas au rendu : l'appli est
   // exportée en statique, et un tirage au sort pendant le rendu serveur donnerait
   // un autre mot que celui tiré par le navigateur — React refuserait l'hydratation.
-  const [question, setQuestion] = useState<Question | null>(null);
+  const [current, setCurrent] = useState<{ unit: Unit; question: Question } | null>(null);
   const [started, setStarted] = useState(false);
   useEffect(() => {
     if (started || eligible.length === 0) return;
@@ -59,40 +81,35 @@ export default function TargetedQuiz({
     // le cas où l'état ne peut pas être calculé pendant le rendu.
     /* eslint-disable-next-line react-hooks/set-state-in-effect */
     setStarted(true);
-    setQuestion(ask(eligible[Math.floor(Math.random() * eligible.length)]));
-  }, [started, eligible, ask]);
+    const unit = nextUnit(eligible);
+    if (unit) setCurrent({ unit, question: ask(unit) });
+  }, [started, eligible, nextUnit, ask]);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [asked, setAsked] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
-  const [queue, setQueue] = useState<Word[]>([]);
-
-  function pickNext(list: Word[], pending: Word[]): { q: Question | null; rest: Word[] } {
-    // Les mots ratés reviennent quelques questions plus loin.
-    if (pending.length > 0 && Math.random() < 0.35) {
-      const [head, ...rest] = pending;
-      return { q: ask(head), rest };
-    }
-    if (list.length === 0) return { q: null, rest: pending };
-    return { q: ask(list[Math.floor(Math.random() * list.length)]), rest: pending };
-  }
+  const [queue, setQueue] = useState<Unit[]>([]);
 
   function changeCategory(key: string) {
     setCategory(key);
-    const byKind = pool.filter((w) => kinds.some((k) => availableKinds(w).includes(k)));
+    const byKind = WORDS.filter((w) => {
+      const own = availableKinds(w);
+      return kinds.some((k) => own.includes(k));
+    });
     const next = key === "all" ? byKind : byKind.filter((w) => w.category === key);
-    setQuestion(next.length ? ask(next[Math.floor(Math.random() * next.length)]) : null);
+    const unit = nextUnit(next);
+    setCurrent(unit ? { unit, question: ask(unit) } : null);
     setSelected(null);
     setQueue([]);
   }
 
   function answer(choice: string) {
-    if (!question || selected !== null) return;
+    if (!current || selected !== null) return;
     setSelected(choice);
-    const { correct: isRight } = evaluate(question, choice);
-    recordAnswer(question.word.id, isRight);
+    const { correct: isRight } = evaluate(current.question, choice);
+    recordAnswer(current.unit.word.id, current.unit.kind, isRight);
     setAsked((n) => n + 1);
     if (isRight) {
       setCorrect((n) => n + 1);
@@ -103,22 +120,29 @@ export default function TargetedQuiz({
       });
     } else {
       setStreak(0);
-      setQueue((q) => shuffle([...q, question.word]));
+      setQueue((q) => shuffle([...q, current.unit]));
     }
   }
 
   function next() {
-    const { q, rest } = pickNext(eligible, queue);
-    setQuestion(q);
-    setQueue(rest);
+    // Ce qui a été raté revient quelques questions plus loin.
+    if (queue.length > 0 && Math.random() < 0.35) {
+      const [head, ...rest] = queue;
+      setCurrent({ unit: head, question: ask(head) });
+      setQueue(rest);
+    } else {
+      const unit = nextUnit(eligible);
+      setCurrent(unit ? { unit, question: ask(unit) } : null);
+    }
     setSelected(null);
   }
 
   return (
     <div>
-      <div className="flex gap-1.5 font-ui overflow-x-auto -mx-4 px-4 pb-1 no-scrollbar">
+      <div className="flex gap-1.5 font-ui overflow-x-auto -mx-4 px-4 pb-1 no-scrollbar" role="group" aria-label="Filtrer par thème">
         <button
           onClick={() => changeCategory("all")}
+          aria-pressed={category === "all"}
           className={`shrink-0 whitespace-nowrap text-[11.5px] px-3 py-2 rounded-full border transition ${
             category === "all" ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
           }`}
@@ -129,6 +153,7 @@ export default function TargetedQuiz({
           <button
             key={c.key}
             onClick={() => changeCategory(c.key)}
+            aria-pressed={category === c.key}
             className={`shrink-0 whitespace-nowrap text-[11.5px] px-3 py-2 rounded-full border transition ${
               category === c.key ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
             }`}
@@ -148,8 +173,8 @@ export default function TargetedQuiz({
         </span>
       </div>
 
-      {question ? (
-        <QuizCard question={question} selected={selected} onAnswer={answer} onNext={next} />
+      {current ? (
+        <QuizCard question={current.question} selected={selected} onAnswer={answer} onNext={next} />
       ) : eligible.length === 0 ? (
         <p className="text-muted text-center py-10 text-[14.5px]">
           Aucun mot ne convient à cet exercice dans ce thème.

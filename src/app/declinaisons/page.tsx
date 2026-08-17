@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import TargetedQuiz from "@/components/TargetedQuiz";
-import WORDS from "@/data";
 
 export const metadata: Metadata = {
   title: "Déclinaisons — Nominativ, Akkusativ, Dativ, Genitiv",
@@ -14,7 +13,7 @@ export default function DeclinaisonsPage() {
         Une phrase, un cas : trouve la bonne forme de l&rsquo;article parmi les six possibles
         (der, die, das, den, dem, des — ou ein/kein).
       </p>
-      <TargetedQuiz pool={WORDS} kind="declension" />
+      <TargetedQuiz kind="declension" />
     </div>
   );
 }

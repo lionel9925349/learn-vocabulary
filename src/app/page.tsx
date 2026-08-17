@@ -10,7 +10,7 @@ export default function Home() {
         {" "}
         {WORDS.length} mots au total.
       </p>
-      <ReviewSession pool={WORDS} />
+      <ReviewSession />
     </div>
   );
 }

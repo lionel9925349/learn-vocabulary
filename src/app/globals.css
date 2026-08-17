@@ -6,7 +6,13 @@
   --paper-2: #f2ede3;
   --line: #c8bfae;
   --muted: #6a6455;
-  --gold: #b07d34;
+  /* Assombri par rapport au doré d'origine (#b07d34, 2,85:1 sur le papier) :
+     il sert de couleur de texte pour la série et les liens accentués, donc il
+     doit passer le seuil de 4,5:1. */
+  --gold: #875c1c;
+
+  /* Texte posé sur un aplat coloré (bouton de bonne/mauvaise réponse). */
+  --on-accent: #ffffff;
 
   --der: #2f5d7c;
   --die: #9a3b47;
@@ -24,6 +30,10 @@
   --muted: #8b8d93;
   --gold: #d1a15c;
 
+  /* En thème sombre les accents sont clairs : du blanc dessus tomberait à
+     2,1:1. C'est l'encre sombre qui devient lisible (6,8:1 à 8,5:1). */
+  --on-accent: #14171c;
+
   --der: #6fa8cf;
   --die: #d98a94;
   --das: #8fbf7f;
@@ -40,6 +50,7 @@
     --line: #333a44;
     --muted: #8b8d93;
     --gold: #d1a15c;
+    --on-accent: #14171c;
 
     --der: #6fa8cf;
     --die: #d98a94;
@@ -57,6 +68,7 @@
   --color-line: var(--line);
   --color-muted: var(--muted);
   --color-gold: var(--gold);
+  --color-on-accent: var(--on-accent);
   --color-der: var(--der);
   --color-die: var(--die);
   --color-das: var(--das);
@@ -113,6 +125,22 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/*
+ * Certaines personnes ont la nausée devant une animation, et le système le
+ * signale. On coupe alors tout mouvement plutôt que de l'atténuer : ici rien
+ * n'est porteur de sens, ce ne sont que des transitions de confort.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Empêche le zoom automatique iOS sur les champs de saisie */
