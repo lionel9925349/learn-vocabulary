@@ -26,6 +26,9 @@ import gefahrgut from "./words/gefahrgut";
 import rektion from "./words/rektion";
 import grundwoerter from "./words/grundwoerter";
 import hoeflichkeit from "./words/hoeflichkeit";
+import kep from "./words/kep";
+import zeit from "./words/zeit";
+import mengen from "./words/mengen";
 import USAGE, { toPairs } from "./usage";
 import DEFINITIONS from "./definitions";
 
@@ -59,7 +62,19 @@ const ALL: Word[] = [
   ...rektion,
   ...grundwoerter,
   ...hoeflichkeit,
+  ...kep,
+  ...zeit,
+  ...mengen,
 ];
+
+/**
+ * Toutes les entrées saisies, **avant** dédoublonnage.
+ *
+ * Exposée pour le seul contrôle de cohérence : il validait jusqu'ici la liste
+ * déjà dédoublonnée, si bien qu'un mot ajouté sous un identifiant déjà pris
+ * disparaissait sans un mot. Trente et une entrées s'étaient ainsi évaporées.
+ */
+export const RAW_ENTRIES: Word[] = ALL;
 
 /**
  * Les lots sont saisis séparément : un même mot peut apparaître deux fois

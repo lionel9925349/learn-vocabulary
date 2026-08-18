@@ -11,7 +11,6 @@ const { n, v, adj } = makers("gefahrgut");
 const words: Word[] = [
   // — Notions de base —
   n("Gefahrgut", "das", "Gefahrgüter", "marchandise dangereuse"),
-  n("Gefahrgutklasse", "die", "Gefahrgutklassen", "classe de danger (ADR)"),
   n("Gefahrgutbeauftragte", "der", "Gefahrgutbeauftragten", "conseiller à la sécurité", { declClass: "weak" }),
   n("Gefahrgutrecht", "das", null, "réglementation des matières dangereuses"),
   n("Gefahrgutvorschrift", "die", "Gefahrgutvorschriften", "prescription matières dangereuses"),
@@ -58,7 +57,6 @@ const words: Word[] = [
   n("Austritt", "der", "Austritte", "échappement / fuite (de produit)"),
 
   // — Sécurité et incidents —
-  n("Schutzausrüstung", "die", "Schutzausrüstungen", "équipement de protection"),
   n("Atemschutz", "der", null, "protection respiratoire"),
   n("Feuerlöscher", "der", "Feuerlöscher", "extincteur"),
   n("Notfallnummer", "die", "Notfallnummern", "numéro d'urgence"),
@@ -66,7 +64,6 @@ const words: Word[] = [
   n("Unterweisung", "die", "Unterweisungen", "formation obligatoire"),
   n("ADR-Bescheinigung", "die", "ADR-Bescheinigungen", "certificat ADR du conducteur"),
   n("Kontrolle", "die", "Kontrollen", "contrôle"),
-  n("Verstoß", "der", "Verstöße", "infraction"),
 
   // — Verbes et adjectifs du domaine —
   v("kennzeichnen", "hat gekennzeichnet", "étiqueter / signaliser"),
@@ -81,6 +78,12 @@ const words: Word[] = [
   adj("giftig", "toxique"),
   adj("umweltgefährdend", "dangereux pour l'environnement"),
   adj("kennzeichnungspflichtig", "soumis à étiquetage"),
+  n("Gefahrgutklasse", "die", "Gefahrgutklassen", "classe de danger (ADR)", {
+    example: { de: "Welche Gefahrgutklasse steht auf dem Beförderungspapier?", fr: "Quelle classe de danger figure sur le document de transport ?" },
+  }),
+  n("Schutzausrüstung", "die", "Schutzausrüstungen", "équipement de protection", {
+    example: { de: "Ohne Schutzausrüstung darf niemand in den Bereich.", fr: "Sans équipement de protection, personne n'entre dans la zone." },
+  }),
 ];
 
 export default words;

@@ -14,7 +14,7 @@
  * contredit sa terminaison est soit une erreur, soit une vraie exception —
  * dans ce cas il doit porter une `rule` écrite à la main pour l'assumer.
  */
-import WORDS, { categories } from "../src/data/index";
+import WORDS, { RAW_ENTRIES, categories } from "../src/data/index";
 import USAGE from "../src/data/usage";
 import DEFINITIONS from "../src/data/definitions";
 import { inferGender } from "../src/lib/genderRules";
@@ -25,6 +25,30 @@ const warnings: string[] = [];
 
 const seen = new Set<string>();
 const categoryKeys = new Set(categories.map((c) => c.key));
+
+/**
+ * Entrées perdues au dédoublonnage.
+ *
+ * `WORDS` est déjà dédoublonné : le contrôle d'unicité qui suit ne pouvait donc
+ * rien trouver. On compare ici la liste **brute**, ce qui rend visible le mot
+ * qu'on croit avoir ajouté et qui n'apparaît nulle part. Ce n'est pas une
+ * erreur — le dédoublonnage est voulu — mais cela doit se voir.
+ */
+const occurrences = new Map<string, string[]>();
+for (const w of RAW_ENTRIES) {
+  const list = occurrences.get(w.id) ?? [];
+  list.push(w.category);
+  occurrences.set(w.id, list);
+}
+for (const [id, cats] of occurrences) {
+  if (cats.length < 2) continue;
+  const word = WORDS.find((w) => w.id === id);
+  warnings.push(
+    `Entrée écrasée : « ${word?.de ?? id} » est saisie ${cats.length} fois ` +
+      `(${cats.join(", ")}). Seule celle de « ${cats[0]} » est conservée — ` +
+      `supprime les autres, ou donne-leur un "id" distinct.`
+  );
+}
 
 for (const w of WORDS) {
   const label = `${w.id} (${w.de})`;

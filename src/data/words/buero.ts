@@ -42,7 +42,6 @@ const words: Word[] = [
   n("Entscheidung", "die", "Entscheidungen", "décision"),
   n("Entscheidungsträger", "der", "Entscheidungsträger", "décideur"),
   n("Zusammenarbeit", "die", null, "collaboration"),
-  n("Absprache", "die", "Absprachen", "arrangement / accord"),
   n("Missverständnis", "das", "Missverständnisse", "malentendu"),
   n("Unterlage", "die", "Unterlagen", "document / pièce"),
   n("Anlage", "die", "Anlagen", "pièce jointe / installation"),

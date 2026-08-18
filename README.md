@@ -7,9 +7,12 @@ d'un téléphone.
 
 ## Ce que fait l'application
 
-- **1363 entrées** : noms (avec article, pluriel et déclinaison complète),
+- **1535 entrées** : noms (avec article, pluriel et déclinaison complète),
   verbes (avec parfait, rection et conjugaison), adjectifs, expressions toutes
-  faites et tournures de politesse, réparties en 24 thèmes.
+  faites et tournures de politesse, réparties en 27 thèmes.
+- **Sessions filtrables par thème** : qui prend un poste dans la messagerie
+  express n'a pas besoin du même vocabulaire que quelqu'un aux achats. Le choix
+  est retenu d'une session à l'autre.
 - **Répétition espacée** (système de Leitner à 6 paliers) : chaque question
   revient juste avant d'être oubliée, de « dans 10 minutes » à « dans deux
   mois ».
@@ -30,22 +33,22 @@ d'un téléphone.
 
 | Exercice | Ce qu'il travaille | Mots concernés |
 |---|---|---|
-| Vocabulaire DE→FR / FR→DE | Le sens, dans les deux sens | 1363 |
-| Le mot en contexte | Retrouver le mot dans une phrase authentique | 1099 |
-| Écrire en allemand | Rappel actif, sans choix multiples | 1273 |
-| Article | der, die ou das | 986 |
-| Pluriel | La forme du pluriel | 896 |
-| Déclinaison de l'article | Les quatre cas dans la phrase | 986 |
-| Wechselpräpositionen | Accusatif ou datif : wohin ? ou wo ? | 986 |
-| Déclinaison de l'adjectif | Faible, mixte, forte | 79 |
-| Conjugaison | Le présent, verbes forts et particules | 172 |
-| Parfait | haben ou sein, et la place du ge- | 174 |
+| Vocabulaire DE→FR / FR→DE | Le sens, dans les deux sens | 1535 |
+| Le mot en contexte | Retrouver le mot dans une phrase authentique | 1218 |
+| Écrire en allemand | Rappel actif, sans choix multiples | 1417 |
+| Article | der, die ou das | 1105 |
+| Pluriel | La forme du pluriel | 1008 |
+| Déclinaison de l'article | Les quatre cas dans la phrase | 1105 |
+| Wechselpräpositionen | Accusatif ou datif : wohin ? ou wo ? | 1105 |
+| Déclinaison de l'adjectif | Faible, mixte, forte | 84 |
+| Conjugaison | Le présent, verbes forts et particules | 179 |
+| Parfait | haben ou sein, et la place du ge- | 181 |
 | Rection des verbes | La préposition et le cas qu'elle impose | 67 |
-| Passif | wird geliefert contre ist geliefert | 100 |
-| Ordre des mots | Parenthèse verbale et subordonnée | 103 |
+| Passif | wird geliefert contre ist geliefert | 107 |
+| Ordre des mots | Parenthèse verbale et subordonnée | 110 |
 | Registre professionnel | Le Konjunktiv II du bureau allemand | 26 |
 
-Soit **9673 questions possibles** sur 1363 mots.
+Soit **10 782 questions possibles** sur 1535 mots.
 
 Les quatre derniers exercices sont ceux qui séparent un vocabulaire d'un usage
 professionnel. Un francophone peut connaître mille mots allemands et rester
@@ -54,12 +57,35 @@ den Lkw* : la préposition régie ne se déduit d'aucune règle, la parenthèse
 verbale n'existe pas en français, et *Schicken Sie mir den Lieferschein* est
 correct mais brutal.
 
+## Le vocabulaire du métier, pas seulement celui du contrat
+
+Un lexique professionnel a tendance à couvrir le rare et à oublier le banal.
+Celui-ci enseignait *Verzugszinsen* et *Konsignationslager* sans enseigner
+**Montag**, **Uhrzeit**, **Kilo** ni **spätestens** — des mots qu'on prononce
+cent fois par jour sur un quai. Trois lots comblent ce creux :
+
+- **Kurier, Express & Paket** (79 entrées) : le trajet réel d'un colis, du
+  service vendu jusqu'à ce qui se passe quand il se perd — *Ablageort*,
+  *Nachnahme*, *Sperrgut*, *Volumengewicht*, *Nachforschungsauftrag*,
+  *Dieselzuschlag*. C'est un métier à part du transport de charges complètes ;
+- **Zeit & Termine** (59 entrées) : les heures, les jours, les semaines
+  calendaires, *Annahmeschluss*, *Feierabend*, les équipes ;
+- **Mengen & Maße** (33 entrées) : poids, volumes, unités et pourcentages,
+  avec les trois écarts qui piègent un francophone — l'unité reste au
+  singulier après un nombre, le *Pfund* allemand vaut 500 g, et la virgule
+  décimale se **dit** (*ein Komma acht*).
+
+Les termes dont la traduction française est elle-même du jargon portent une
+définition : savoir que *Volumengewicht* se dit « poids volumétrique » n'aide
+personne tant qu'on ignore qu'il s'agit d'un poids fictif calculé sur
+l'encombrement, et qu'on facture le plus élevé des deux.
+
 ## L'unité de révision est la facette, pas le mot
 
 Un mot n'est pas un bloc. Savoir traduire *der Wareneingang*, savoir son
 pluriel et savoir le décliner au génitif sont trois acquis distincts, qui
 s'oublient à des rythmes différents. La répétition espacée porte donc sur le
-couple **(mot, type de question)** — 1363 mots font ainsi 9673 facettes.
+couple **(mot, type de question)** — 1535 mots font ainsi 10 782 facettes.
 
 Concrètement :
 
@@ -198,7 +224,7 @@ Ensuite, brancher le fichier dans `src/data/index.ts` et lancer :
 npm run check:data
 ```
 
-Le script vérifie l'unicité des identifiants, les champs obligatoires, et
+Le script vérifie les champs obligatoires, les usages orphelins, et
 surtout **compare le genre déclaré au genre déduit** : c'est ce qui rattrape les
 fautes d'article à grande échelle. Il rapporte aussi la fiabilité du moteur
 d'inférence (actuellement 100 % de précision sur les 62 % de noms qu'il sait
@@ -206,6 +232,15 @@ trancher — la couverture a baissé avec l'arrivée des mots de base, qui sont
 courts et sans terminaison caractéristique). Un mot dont le genre contredit sa morphologie est soit une faute de
 saisie, soit une vraie exception — dans ce second cas il doit porter une `rule`
 écrite à la main pour l'assumer explicitement.
+
+Il signale aussi les **entrées écrasées**. Les lots sont fusionnés par
+identifiant et la première occurrence gagne : un mot saisi sous un identifiant
+déjà pris disparaissait donc sans un mot, et le contrôle d'unicité ne pouvait
+rien voir puisqu'il portait sur la liste déjà dédoublonnée. Trente et une
+entrées s'étaient ainsi évaporées, dont deux versions **plus riches** que
+celles qui les avaient supplantées. Un mot volontairement homographe — *der
+Zuschlag*, l'attribution d'un marché, contre *der Zuschlag*, le supplément —
+doit porter un `id` explicite.
 
 Le tableau de déclinaison (der/die/das/den/dem/des et ein/kein aux quatre cas)
 est calculé par `src/lib/declension.ts` — il n'y a rien à saisir.

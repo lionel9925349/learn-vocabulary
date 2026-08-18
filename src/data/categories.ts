@@ -7,6 +7,9 @@ const categories: Category[] = [
   { key: "zoll", label: "Zoll & Außenhandel", description: "Douane, import/export, incoterms", group: "Logistik" },
   { key: "verpackung", label: "Verpackung", description: "Emballage, étiquetage", group: "Logistik" },
   { key: "gefahrgut", label: "Gefahrgut", description: "Matières dangereuses, ADR, étiquetage", group: "Logistik" },
+  { key: "kep", label: "Kurier, Express & Paket", description: "Messagerie express : tournées, livraison, suppléments", group: "Logistik" },
+  { key: "zeit", label: "Zeit & Termine", description: "Heures, jours, échéances, équipes", group: "Logistik" },
+  { key: "mengen", label: "Mengen & Maße", description: "Poids, volumes, unités, pourcentages", group: "Logistik" },
   { key: "produktion", label: "Produktion", description: "Production, fabrication, atelier", group: "Logistik" },
   { key: "kennzahlen", label: "Kennzahlen", description: "Indicateurs, mesure de performance", group: "Logistik" },
 

@@ -68,7 +68,6 @@ const words: Word[] = [
   transport.n("Achslast", "die", "Achslasten", "charge à l'essieu"),
   transport.n("Mautgebühr", "die", "Mautgebühren", "péage"),
   transport.n("Umweltzone", "die", "Umweltzonen", "zone à faibles émissions"),
-  transport.n("Gefahrgutklasse", "die", "Gefahrgutklassen", "classe de matière dangereuse"),
   transport.n("Begleitpapier", "das", "Begleitpapiere", "document d'accompagnement"),
   transport.n("Empfangsquittung", "die", "Empfangsquittungen", "reçu de livraison"),
   transport.n("Ablieferbeleg", "der", "Ablieferbelege", "preuve de livraison (POD)"),
@@ -97,14 +96,12 @@ const words: Word[] = [
   produktion.n("Schichtplan", "der", "Schichtpläne", "planning des équipes"),
   produktion.n("Schichtübergabe", "die", "Schichtübergaben", "passation d'équipe"),
   produktion.n("Arbeitssicherheit", "die", null, "sécurité du travail"),
-  produktion.n("Schutzausrüstung", "die", "Schutzausrüstungen", "équipement de protection"),
   produktion.n("Unfallverhütung", "die", null, "prévention des accidents"),
   produktion.n("Betriebsanweisung", "die", "Betriebsanweisungen", "consigne d'exploitation"),
 
   // — Indicateurs —
   kennzahlen.n("Liefertreue", "die", null, "taux de respect des délais (OTIF)"),
   kennzahlen.n("Termintreue", "die", null, "ponctualité de livraison"),
-  kennzahlen.n("Durchlaufzeit", "die", "Durchlaufzeiten", "délai de traitement"),
   kennzahlen.n("Reaktionszeit", "die", "Reaktionszeiten", "temps de réaction"),
   kennzahlen.n("Bearbeitungszeit", "die", "Bearbeitungszeiten", "temps de traitement"),
   kennzahlen.n("Fehlerrate", "die", "Fehlerraten", "taux d'erreur"),

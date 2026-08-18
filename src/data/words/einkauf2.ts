@@ -19,7 +19,14 @@ const words: Word[] = [
   n("Ausschreibungsunterlage", "die", "Ausschreibungsunterlagen", "dossier d'appel d'offres"),
   n("Angebotsvergleich", "der", "Angebotsvergleiche", "comparatif des offres"),
   n("Angebotsfrist", "die", "Angebotsfristen", "date limite de remise des offres"),
-  n("Zuschlag", "der", "Zuschläge", "attribution du marché / supplément"),
+  n("Zuschlag", "der", "Zuschläge", "attribution du marché", {
+    // Homographe assumé : « der Zuschlag » désigne aussi la prime ou le
+    // supplément tarifaire (voir le thème Arbeitsplatz). Deux sens sans
+    // rapport, donc deux entrées — d'où l'identifiant explicite.
+    id: "zuschlag-vergabe",
+    note: "Autre sens, tout à fait courant : **le supplément** (prime de nuit, surcharge gazole). Le contexte tranche seul.",
+    example: { de: "Der Zuschlag ging an den günstigsten Bieter.", fr: "Le marché a été attribué au moins-disant." },
+  }),
   n("Absage", "die", "Absagen", "refus / annulation"),
   n("Verhandlungsspielraum", "der", "Verhandlungsspielräume", "marge de négociation"),
   n("Verhandlungsführung", "die", null, "conduite de la négociation"),
@@ -52,7 +59,6 @@ const words: Word[] = [
   n("Bezugsquelle", "die", "Bezugsquellen", "source d'approvisionnement"),
   n("Beschaffungsrisiko", "das", "Beschaffungsrisiken", "risque d'approvisionnement"),
   n("Versorgungssicherheit", "die", null, "sécurité d'approvisionnement"),
-  n("Abhängigkeit", "die", "Abhängigkeiten", "dépendance"),
   n("Marktbeobachtung", "die", "Marktbeobachtungen", "veille de marché"),
   n("Marktmacht", "die", null, "pouvoir de marché"),
   n("Warenwirtschaft", "die", null, "gestion des marchandises"),

@@ -8,7 +8,6 @@ const words: Word[] = [
   n("Vertragsbedingung", "die", "Vertragsbedingungen", "condition contractuelle"),
   n("Geschäftsbedingung", "die", "Geschäftsbedingungen", "condition générale (CGV/AGB)"),
   n("Klausel", "die", "Klauseln", "clause"),
-  n("Vertragsstrafe", "die", "Vertragsstrafen", "pénalité contractuelle"),
   n("Schadensersatz", "der", null, "dommages et intérêts"),
   n("Haftungsausschluss", "der", "Haftungsausschlüsse", "clause de non-responsabilité"),
   n("Haftungsbeschränkung", "die", "Haftungsbeschränkungen", "limitation de responsabilité"),
@@ -24,7 +23,6 @@ const words: Word[] = [
   n("Vollmacht", "die", "Vollmachten", "procuration"),
   n("Einwilligung", "die", "Einwilligungen", "consentement"),
   n("Verpflichtung", "die", "Verpflichtungen", "obligation"),
-  n("Verstoß", "der", "Verstöße", "infraction / manquement"),
   n("Verletzung", "die", "Verletzungen", "violation"),
   n("Kündigungsgrund", "der", "Kündigungsgründe", "motif de résiliation"),
   n("Rücktritt", "der", "Rücktritte", "rétractation / retrait"),
@@ -50,6 +48,9 @@ const words: Word[] = [
   n("Meldepflicht", "die", "Meldepflichten", "obligation de déclaration"),
   n("Sorgfaltspflicht", "die", "Sorgfaltspflichten", "devoir de diligence"),
   n("Bußgeld", "das", "Bußgelder", "amende administrative"),
+  n("Verstoß", "der", "Verstöße", "infraction / manquement", {
+    example: { de: "Ein Verstoß gegen die Ladungssicherung kostet 60 Euro.", fr: "Un manquement à l'arrimage coûte 60 euros." },
+  }),
 ];
 
 export default words;

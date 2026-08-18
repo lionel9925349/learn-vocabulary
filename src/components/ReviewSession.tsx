@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import WORDS from "@/data";
+import categories from "@/data/categories";
 import type { Word } from "@/lib/types";
 import { displayForm, isNoun } from "@/lib/types";
 import { buildSession, computeStats, wordState } from "@/lib/srs";
 import { useSrs, recordAnswer } from "@/lib/srsStore";
+import { setPreferences, usePreferences } from "@/lib/preferences";
 import type { Unit } from "@/lib/units";
 import { buildQuestion, evaluate, type Question } from "@/lib/quiz";
 import { ruleFor } from "@/lib/genderRules";
@@ -27,22 +29,31 @@ type Phase = "idle" | "running" | "done";
 
 const SIZES = [10, 20, 40];
 
+/** Ordre d'affichage des groupes de thèmes, du plus métier au plus général. */
+const GROUPS = ["Logistik", "Einkauf", "IT", "Sprache"];
+
 /** Combien de questions plus loin une facette ratée revient dans la même session. */
 const REPEAT_GAP = 3;
 
 export default function ReviewSession() {
   const srs = useSrs();
+  const { themes, size } = usePreferences();
   const [phase, setPhase] = useState<Phase>("idle");
-  const [size, setSize] = useState(20);
   const [steps, setSteps] = useState<Step[]>([]);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [results, setResults] = useState<{ word: Word; correct: boolean }[]>([]);
 
-  const stats = useMemo(() => computeStats(srs, WORDS), [srs]);
+  /** Le vocabulaire retenu pour la session. Aucun thème choisi = tout. */
+  const pool = useMemo(
+    () => (themes.length === 0 ? WORDS : WORDS.filter((w) => themes.includes(w.category))),
+    [themes]
+  );
+
+  const stats = useMemo(() => computeStats(srs, pool), [srs, pool]);
 
   function start() {
-    const plan = buildSession(srs, WORDS, size);
+    const plan = buildSession(srs, pool, size);
     if (plan.units.length === 0) return;
 
     const built: Step[] = [];
@@ -53,6 +64,9 @@ export default function ReviewSession() {
         introduced.add(unit.word.id);
         built.push({ type: "intro", word: unit.word });
       }
+      // Les distracteurs viennent de tout le vocabulaire, pas seulement du
+      // thème retenu : un choix multiple entre quatre mots du même thème
+      // serait plus facile qu'il ne doit l'être.
       built.push({ type: "quiz", unit, question: buildQuestion(unit.word, WORDS, unit.kind) });
     }
 
@@ -103,7 +117,7 @@ export default function ReviewSession() {
       <StartScreen
         stats={stats}
         size={size}
-        onSize={setSize}
+        themes={themes}
         onStart={start}
         available={stats.dueNow + stats.newUnits}
       />
@@ -158,18 +172,20 @@ export default function ReviewSession() {
 function StartScreen({
   stats,
   size,
-  onSize,
+  themes,
   onStart,
   available,
 }: {
   stats: ReturnType<typeof computeStats>;
   size: number;
-  onSize: (n: number) => void;
+  themes: string[];
   onStart: () => void;
   available: number;
 }) {
   return (
     <div>
+      <ThemePicker themes={themes} total={stats.total} />
+
       <div className="grid grid-cols-3 gap-2.5 mb-6">
         <Stat value={stats.dueNow} label="à revoir" accent="var(--die)" />
         <Stat value={stats.untouched} label="mots jamais vus" accent="var(--der)" />
@@ -193,7 +209,7 @@ function StartScreen({
           {SIZES.map((n) => (
             <button
               key={n}
-              onClick={() => onSize(n)}
+              onClick={() => setPreferences({ size: n })}
               aria-pressed={size === n}
               className={`font-ui text-[13px] px-5 py-2.5 rounded-full border transition ${
                 size === n ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
@@ -220,6 +236,101 @@ function StartScreen({
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Choix des thèmes.
+ *
+ * Multi-sélection, avec un raccourci par groupe : « Logistik » coche d'un coup
+ * les sept thèmes du domaine. Aucun thème coché veut dire « tout le
+ * vocabulaire » — c'est l'état par défaut, et le seul qui n'a pas besoin
+ * d'être expliqué.
+ */
+function ThemePicker({ themes, total }: { themes: string[]; total: number }) {
+  const [open, setOpen] = useState(themes.length > 0);
+  const selected = new Set(themes);
+
+  function toggle(key: string) {
+    const next = new Set(selected);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setPreferences({ themes: [...next] });
+  }
+
+  function selectGroup(group: string) {
+    const keys = categories.filter((c) => c.group === group).map((c) => c.key);
+    const allChosen = keys.every((k) => selected.has(k));
+    // Un groupe déjà entièrement coché se décoche : le bouton fait les deux.
+    setPreferences({
+      themes: allChosen ? themes.filter((t) => !keys.includes(t)) : [...new Set([...themes, ...keys])],
+    });
+  }
+
+  return (
+    <div className="mb-5">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="font-ui text-[12px] text-muted flex items-center gap-1.5 hover:text-ink transition-colors"
+      >
+        <span aria-hidden>{open ? "▾" : "▸"}</span>
+        {themes.length === 0
+          ? `Tout le vocabulaire · ${total} mots`
+          : `${themes.length} thème${themes.length > 1 ? "s" : ""} · ${total} mots`}
+      </button>
+
+      {open && (
+        <div className="mt-2.5">
+          <div className="flex gap-1.5 font-ui flex-wrap">
+            <button
+              onClick={() => setPreferences({ themes: [] })}
+              aria-pressed={themes.length === 0}
+              className={`text-[11.5px] px-3 py-2 rounded-full border transition ${
+                themes.length === 0 ? "bg-ink text-paper border-ink" : "border-line text-muted hover:border-ink"
+              }`}
+            >
+              Tout
+            </button>
+            {GROUPS.map((group) => (
+              <button
+                key={group}
+                onClick={() => selectGroup(group)}
+                className="text-[11.5px] px-3 py-2 rounded-full border border-line text-muted hover:border-ink transition"
+              >
+                {group}
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="flex gap-1.5 font-ui mt-2 overflow-x-auto -mx-4 px-4 pb-1 no-scrollbar"
+            role="group"
+            aria-label="Thèmes de la session"
+          >
+            {categories.map((c) => (
+              <button
+                key={c.key}
+                onClick={() => toggle(c.key)}
+                aria-pressed={selected.has(c.key)}
+                className={`shrink-0 whitespace-nowrap text-[11.5px] px-3 py-2 rounded-full border transition ${
+                  selected.has(c.key)
+                    ? "bg-ink text-paper border-ink"
+                    : "border-line text-muted hover:border-ink"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="font-ui text-[11.5px] text-muted mt-2 leading-relaxed">
+            La répétition espacée ne portera que sur ces thèmes. Les mauvaises réponses
+            proposées, elles, viennent toujours de tout le vocabulaire.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
