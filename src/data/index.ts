@@ -23,6 +23,9 @@ import recht from "./words/recht";
 import logistik2 from "./words/logistik2";
 import zoll2 from "./words/zoll2";
 import gefahrgut from "./words/gefahrgut";
+import rektion from "./words/rektion";
+import grundwoerter from "./words/grundwoerter";
+import hoeflichkeit from "./words/hoeflichkeit";
 import USAGE, { toPairs } from "./usage";
 import DEFINITIONS from "./definitions";
 
@@ -53,6 +56,9 @@ const ALL: Word[] = [
   ...logistik2,
   ...zoll2,
   ...gefahrgut,
+  ...rektion,
+  ...grundwoerter,
+  ...hoeflichkeit,
 ];
 
 /**

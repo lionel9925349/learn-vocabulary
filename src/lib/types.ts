@@ -40,6 +40,12 @@ export interface Word {
   /** Verbe à particule séparable (an|kommen) */
   separable?: boolean;
   /**
+   * Verbe sans complément d'objet direct (*die Ware fehlt*, *bei jemandem
+   * nachfragen*). Il n'a donc ni passif d'action ni phrase à objet direct :
+   * les exercices qui en supposent un le laissent de côté.
+   */
+  intransitive?: boolean;
+  /**
    * 3ᵉ personne du singulier au présent, uniquement pour les verbes forts dont
    * la voyelle change (nehmen → "nimmt", laden → "lädt"). Les verbes réguliers
    * sont conjugués automatiquement.
@@ -51,6 +57,14 @@ export interface Word {
    * singulier (er hält → du häl**tst**, er tritt → du tri**ttst**).
    */
   praesensDu?: string;
+
+  // — Expressions du registre professionnel —
+  /**
+   * Formulation directe correspondante, pour les tournures de politesse.
+   * Les deux sont correctes ; c'est le registre qui les sépare — voir
+   * `data/words/hoeflichkeit`.
+   */
+  direct?: string;
 
   /** Explication de la règle de genre. Si absente, elle est déduite de la morphologie. */
   rule?: string;

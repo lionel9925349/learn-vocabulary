@@ -7,15 +7,17 @@ d'un téléphone.
 
 ## Ce que fait l'application
 
-- **1121 entrées** : noms (avec article, pluriel et déclinaison complète),
-  verbes (avec parfait, cas régis et conjugaison), adjectifs et expressions
-  toutes faites, réparties en 22 thèmes.
+- **1363 entrées** : noms (avec article, pluriel et déclinaison complète),
+  verbes (avec parfait, rection et conjugaison), adjectifs, expressions toutes
+  faites et tournures de politesse, réparties en 24 thèmes.
 - **Répétition espacée** (système de Leitner à 6 paliers) : chaque question
   revient juste avant d'être oubliée, de « dans 10 minutes » à « dans deux
   mois ».
-- **Huit types d'exercices**, mélangés selon ce qui est dû : article,
-  traduction DE→FR et FR→DE, **saisie au clavier** (rappel actif), pluriel,
-  déclinaison de l'article, **déclinaison de l'adjectif** et **conjugaison**.
+- **Quinze types d'exercices**, mélangés selon ce qui est dû — du sens des mots
+  jusqu'à l'ordre des mots dans la phrase. Voir le tableau ci-dessous.
+- **Un mémento de grammaire** (`/grammaire`) alimenté par les mêmes données que
+  les exercices : cas, prépositions, parenthèse verbale, passif, Konjunktiv II,
+  et la liste des rections relevées dans le vocabulaire.
 - **Prononciation** allemande par la synthèse vocale du navigateur.
 - **Suivi de progression** : série de jours, taux de réussite, couverture du
   vocabulaire, échéancier de mémorisation, avancement par thème.
@@ -24,12 +26,40 @@ d'un téléphone.
 - **Sauvegarde export/import** : indispensable sur la durée, le stockage d'un
   navigateur n'étant pas éternel (iOS purge les sites peu visités).
 
+## Ce que l'application enseigne
+
+| Exercice | Ce qu'il travaille | Mots concernés |
+|---|---|---|
+| Vocabulaire DE→FR / FR→DE | Le sens, dans les deux sens | 1363 |
+| Le mot en contexte | Retrouver le mot dans une phrase authentique | 1099 |
+| Écrire en allemand | Rappel actif, sans choix multiples | 1273 |
+| Article | der, die ou das | 986 |
+| Pluriel | La forme du pluriel | 896 |
+| Déclinaison de l'article | Les quatre cas dans la phrase | 986 |
+| Wechselpräpositionen | Accusatif ou datif : wohin ? ou wo ? | 986 |
+| Déclinaison de l'adjectif | Faible, mixte, forte | 79 |
+| Conjugaison | Le présent, verbes forts et particules | 172 |
+| Parfait | haben ou sein, et la place du ge- | 174 |
+| Rection des verbes | La préposition et le cas qu'elle impose | 67 |
+| Passif | wird geliefert contre ist geliefert | 100 |
+| Ordre des mots | Parenthèse verbale et subordonnée | 103 |
+| Registre professionnel | Le Konjunktiv II du bureau allemand | 26 |
+
+Soit **9673 questions possibles** sur 1363 mots.
+
+Les quatre derniers exercices sont ceux qui séparent un vocabulaire d'un usage
+professionnel. Un francophone peut connaître mille mots allemands et rester
+incompréhensible s'il dit *ich warte für den Lkw* au lieu de *ich warte **auf**
+den Lkw* : la préposition régie ne se déduit d'aucune règle, la parenthèse
+verbale n'existe pas en français, et *Schicken Sie mir den Lieferschein* est
+correct mais brutal.
+
 ## L'unité de révision est la facette, pas le mot
 
 Un mot n'est pas un bloc. Savoir traduire *der Wareneingang*, savoir son
 pluriel et savoir le décliner au génitif sont trois acquis distincts, qui
 s'oublient à des rythmes différents. La répétition espacée porte donc sur le
-couple **(mot, type de question)** — 1121 mots font ainsi 5875 facettes.
+couple **(mot, type de question)** — 1363 mots font ainsi 9673 facettes.
 
 Concrètement :
 
@@ -65,7 +95,7 @@ seul le stockage de la progression changerait.
 
 Les composants interactifs importent `WORDS` directement plutôt que de le
 recevoir en `prop` depuis un composant serveur. La différence n'est pas
-esthétique : une prop traverse la frontière serveur/client, donc les 1121
+esthétique : une prop traverse la frontière serveur/client, donc toutes les
 entrées étaient sérialisées dans le HTML **et** dans la charge utile RSC de
 chaque page, en plus d'être déjà présentes dans le JavaScript. Les pages
 pesaient 630 Ko ; elles en pèsent 15 à 30. Le vocabulaire ne voyage plus qu'une
@@ -73,6 +103,21 @@ fois, dans un fragment de code mis en cache par le navigateur.
 
 Corollaire à respecter : `@/data` (le vocabulaire complet) ne doit pas être
 importé pour la seule liste des thèmes — c'est `@/data/categories` qu'il faut.
+
+### Les mots de base engendrent les composés
+
+L'allemand professionnel est presque entièrement fait de composés, et un
+composé ne s'apprend pas : il se **lit**, à condition d'en connaître les
+éléments. Qui sait *der Auftrag*, *der Eingang* et *die Kontrolle* déchiffre
+*Auftragseingangskontrolle* sans l'avoir jamais vu.
+
+Le thème **Grundwörter** rassemble ces éléments (`src/data/words/grundwoerter.ts`).
+Ils étaient déjà connus du moteur de décomposition, qui s'en servait pour
+expliquer le genre des composés, mais n'étaient pas apprenables : le programme
+enseignait *Wareneingang* sans jamais enseigner *die Ware*. Depuis qu'ils sont
+des entrées à part entière, **96 % des composés** ont au moins un élément
+cliquable dans leur rubrique « Mot à mot », et le vocabulaire se relit de
+composé en composé.
 
 ## Développement
 
@@ -98,10 +143,13 @@ conjugaison, déduction du genre, correction des réponses tapées, répétition
 espacée et migration des sauvegardes.
 
 `src/lib/quiz.test.ts` fait autre chose : il génère **toutes** les questions de
-**tout** le vocabulaire et vérifie leurs invariants (la bonne réponse figure
+**tout** le vocabulaire et vérifie leurs invariants — la bonne réponse figure
 parmi les propositions, aucune proposition n'est en double, le sens reste
-affiché sauf quand c'est lui la réponse). C'est le filet qui attrape les
-problèmes de données que ne voit pas `check:data`.
+affiché sauf quand c'est lui la réponse, la phrase à reconstruire est
+exactement carrelée par les mots proposés, et la réponse n'est jamais lisible
+dans l'énoncé. C'est le filet qui attrape les problèmes de données que ne voit
+pas `check:data` : c'est lui qui a révélé que masquer *Ware* dans « Die Ware
+steht im Wareneingang » laissait la réponse en toutes lettres.
 
 ## Déploiement sur GitHub Pages
 
@@ -153,8 +201,9 @@ npm run check:data
 Le script vérifie l'unicité des identifiants, les champs obligatoires, et
 surtout **compare le genre déclaré au genre déduit** : c'est ce qui rattrape les
 fautes d'article à grande échelle. Il rapporte aussi la fiabilité du moteur
-d'inférence (actuellement 100 % de précision sur les 72 % de noms qu'il sait
-trancher). Un mot dont le genre contredit sa morphologie est soit une faute de
+d'inférence (actuellement 100 % de précision sur les 62 % de noms qu'il sait
+trancher — la couverture a baissé avec l'arrivée des mots de base, qui sont
+courts et sans terminaison caractéristique). Un mot dont le genre contredit sa morphologie est soit une faute de
 saisie, soit une vraie exception — dans ce second cas il doit porter une `rule`
 écrite à la main pour l'assumer explicitement.
 

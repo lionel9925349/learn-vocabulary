@@ -7,6 +7,15 @@ import { conjugatePresent } from "./conjugation";
 import { shuffle, pick } from "./shuffle";
 import { KIND_LABELS, availableKinds, type QuestionKind } from "./units";
 import {
+  clozeQuestion,
+  governsQuestion,
+  passiveQuestion,
+  perfectQuestion,
+  politenessQuestion,
+  prepositionQuestion,
+  wordOrderQuestion,
+} from "./quizGrammar";
+import {
   ALL_ENDINGS,
   DECLENSION_LABELS,
   GENDER_LABELS,
@@ -42,6 +51,12 @@ export interface Question {
   correct: string;
   /** Réponse tapée au clavier plutôt que choisie dans une liste */
   typed?: boolean;
+  /**
+   * Mots à remettre dans l'ordre. La réponse est alors la phrase reconstituée,
+   * mots séparés par une espace — voir `word-order`.
+   */
+  tokens?: string[];
+  builder?: boolean;
   /** Autres formulations acceptées, avec le rappel qui les accompagne */
   accepted?: AcceptedForm[];
   /** Explication montrée après la réponse */
@@ -176,15 +191,23 @@ function conjugationQuestion(word: Word): Question {
   };
 }
 
-type AdjFrame = (det: string, blank: string, noun: string) => string;
+/**
+ * Le quatrième argument dit si le groupe nominal est au pluriel.
+ *
+ * Il n'est utile qu'au nominatif, mais il y est indispensable : le groupe y est
+ * **sujet**, donc le verbe s'accorde avec lui. Sans cela on produisait « Hier
+ * steht keine pünktlichen Sachbearbeiter » — une phrase que l'exercice
+ * présentait comme le modèle à suivre.
+ */
+type AdjFrame = (det: string, blank: string, noun: string, plural: boolean) => string;
 
 /** Là aussi plusieurs tournures, pour ne pas apprendre la phrase à la place de la règle. */
 const ADJ_FRAMES: Record<CaseName, AdjFrame[]> = {
   Nominativ: [
-    (d, b, n) => `${d} ${b} ${n} ist wichtig.`,
-    (d, b, n) => `${d} ${b} ${n} fehlt noch.`,
-    (d, b, n) => `Hier steht ${d} ${b} ${n}.`,
-    (d, b, n) => `${d} ${b} ${n} wurde geliefert.`,
+    (d, b, n, pl) => `${d} ${b} ${n} ${pl ? "sind" : "ist"} wichtig.`,
+    (d, b, n, pl) => `${d} ${b} ${n} ${pl ? "fehlen" : "fehlt"} noch.`,
+    (d, b, n, pl) => `Hier ${pl ? "stehen" : "steht"} ${d} ${b} ${n}.`,
+    (d, b, n, pl) => `${d} ${b} ${n} ${pl ? "wurden" : "wurde"} geliefert.`,
   ],
   Akkusativ: [
     (d, b, n) => `Wir brauchen ${d} ${b} ${n}.`,
@@ -242,8 +265,8 @@ function adjectiveQuestion(word: Word, all: Word[]): Question {
   // Sans déterminant, la phrase garderait une double espace là où il manque.
   const frame = pick(ADJ_FRAMES[caseName]);
   const tidy = (s: string) => s.replace(/\s{2,}/g, " ").trim();
-  const prompt = capitalize(tidy(frame(detWord, "＿＿＿", nounForm_)));
-  const solved = capitalize(tidy(frame(detWord, correct, nounForm_)));
+  const prompt = capitalize(tidy(frame(detWord, "＿＿＿", nounForm_, plural)));
+  const solved = capitalize(tidy(frame(detWord, correct, nounForm_, plural)));
 
   const why =
     declension === "weak"
@@ -284,6 +307,23 @@ export function buildQuestion(word: Word, all: Word[], kind?: QuestionKind): Que
       return adjectiveQuestion(word, all);
     case "conjugation":
       return conjugationQuestion(word);
+    // Les questions de grammaire dépendent de données qui peuvent manquer
+    // (une phrase exploitable, un nom complément). Elles renvoient null dans
+    // ce cas, et l'on retombe sur le sens plutôt que d'échouer.
+    case "cloze":
+      return clozeQuestion(word, all) ?? deFrQuestion(word, all);
+    case "perfect":
+      return perfectQuestion(word) ?? deFrQuestion(word, all);
+    case "governs":
+      return governsQuestion(word) ?? deFrQuestion(word, all);
+    case "preposition":
+      return prepositionQuestion(word) ?? deFrQuestion(word, all);
+    case "passive":
+      return passiveQuestion(word, all) ?? deFrQuestion(word, all);
+    case "word-order":
+      return wordOrderQuestion(word, all) ?? deFrQuestion(word, all);
+    case "politeness":
+      return politenessQuestion(word, all) ?? deFrQuestion(word, all);
     case "de-fr":
     default:
       return deFrQuestion(word, all);

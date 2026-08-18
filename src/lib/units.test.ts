@@ -15,15 +15,24 @@ const noun = (extra: Partial<Word> = {}): Word => ({
 });
 
 describe("availableKinds", () => {
-  it("un nom avec pluriel se travaille sous six angles", () => {
+  it("un nom avec pluriel se travaille sous sept angles", () => {
     deepStrictEqual(availableKinds(noun()).sort(), [
       "article",
       "de-fr",
       "declension",
       "fr-de",
       "plural",
+      "preposition",
       "type-de",
     ]);
+  });
+
+  it("le contexte n'est proposé que si le mot figure dans une de ses phrases", () => {
+    strictEqual(availableKinds(noun()).includes("cloze"), false);
+    const withSentence = noun({
+      example: { de: "Der Auftrag ist freigegeben.", fr: "La commande est validée." },
+    });
+    strictEqual(availableKinds(withSentence).includes("cloze"), true);
   });
 
   it("un nom sans pluriel n'a pas de question de pluriel", () => {

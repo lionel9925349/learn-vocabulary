@@ -30,6 +30,10 @@ const categories: Category[] = [
   { key: "arbeit", label: "Arbeitsplatz", description: "Travail, équipes, sécurité", group: "Sprache" },
   { key: "kommunikation", label: "Kommunikation", description: "Communication, réunions", group: "Sprache" },
   { key: "personen", label: "Personen & Rollen", description: "Métiers et rôles", group: "Sprache" },
+  // Les éléments dont sont faits les composés : les apprendre, c'est apprendre
+  // à lire tous les mots longs sans les avoir jamais vus.
+  { key: "grundwortschatz", label: "Grundwörter", description: "Mots de base : les briques des composés", group: "Sprache" },
+  { key: "hoeflichkeit", label: "Höflichkeit", description: "Registre professionnel : demander, refuser, relancer", group: "Sprache" },
 ];
 
 export default categories;

@@ -29,11 +29,15 @@ const REFLEXIVE: Record<Person, string> = {
  * über-, unter-, um- et durch- en sont volontairement absents : ils sont
  * tantôt séparables tantôt non (überweisen, überwachen, überprüfen sont
  * inséparables), et la forme seule ne permet pas de trancher. Un verbe de ce
- * type doit porter explicitement `separable: true`.
+ * type doit porter explicitement `separable: true` — il est alors cherché dans
+ * `AMBIGUOUS_PREFIXES`.
  */
 const SEPARABLE_PREFIXES = [
   "herunter",
   "zusammen",
+  // « überein- » se place avant « über- » : c'est le préfixe complet
+  // (übereinstimmen → ich stimme … überein), et il est toujours séparable.
+  "überein",
   "zurück",
   "wieder",
   "voraus",
@@ -63,6 +67,14 @@ const SEPARABLE_PREFIXES = [
   "hin",
 ];
 
+/**
+ * Préfixes tantôt séparables, tantôt non. On ne les consulte **que** si le mot
+ * a déclaré `separable: true` : *umgehen mit* se sépare (ich gehe damit um),
+ * *umgehen* au sens de contourner ne se sépare pas. La forme ne tranche pas,
+ * seul le vocabulaire le sait.
+ */
+const AMBIGUOUS_PREFIXES = ["durch", "über", "unter", "um"];
+
 /** Préfixes inséparables : ils restent collés au verbe. */
 const INSEPARABLE_PREFIXES = ["be", "ge", "er", "ver", "zer", "ent", "emp", "miss"];
 
@@ -86,7 +98,7 @@ export function splitVerb(word: Word): SplitVerb {
   if (inf.includes(" ")) return { prefix: null, base: inf, reflexive };
 
   if (word.separable === true) {
-    for (const p of SEPARABLE_PREFIXES) {
+    for (const p of [...SEPARABLE_PREFIXES, ...AMBIGUOUS_PREFIXES]) {
       if (inf.startsWith(p) && inf.length - p.length >= 4) {
         return { prefix: p, base: inf.slice(p.length), reflexive };
       }

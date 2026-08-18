@@ -8,7 +8,19 @@ import categories from "@/data/categories";
 import Markup from "./Markup";
 import AudioButton from "./AudioButton";
 import TypedAnswerInput from "./TypedAnswerInput";
+import SentenceBuilder from "./SentenceBuilder";
 import WordDictionary from "./WordDictionary";
+
+/** Types de questions dont l'énoncé est une phrase, et non un mot isolé. */
+const LONG_PROMPT_KINDS = new Set([
+  "declension",
+  "adjective",
+  "conjugation",
+  "cloze",
+  "preposition",
+  "passive",
+  "politeness",
+]);
 
 /**
  * Carte de question, partagée par la session de révision et les exercices ciblés.
@@ -53,7 +65,8 @@ export default function QuizCard({
         }
         return;
       }
-      if (question.typed) return;
+      // Sur une question tapée ou assemblée, les chiffres ne choisissent rien.
+      if (question.typed || question.builder) return;
 
       const n = Number(e.key);
       if (Number.isInteger(n) && n >= 1 && n <= question.choices.length) {
@@ -78,16 +91,18 @@ export default function QuizCard({
         )}
       </div>
 
-      <div
-        lang="de"
-        className={`text-center font-semibold german ${
-          question.kind === "declension" || question.kind === "adjective" || question.kind === "conjugation"
-            ? "text-[19px] sm:text-[22px] leading-snug"
-            : "word-display"
-        }`}
-      >
-        {question.prompt}
-      </div>
+      {/* Sur une question d'assemblage, l'amorce est portée par le plateau
+          lui-même : la réafficher ici la ferait lire deux fois. */}
+      {!question.builder && (
+        <div
+          lang="de"
+          className={`text-center font-semibold german ${
+            LONG_PROMPT_KINDS.has(question.kind) ? "text-[19px] sm:text-[22px] leading-snug" : "word-display"
+          }`}
+        >
+          {question.prompt}
+        </div>
+      )}
       {/* Le sens reste sous les yeux : on n'apprend pas un article sur un mot inconnu. */}
       {question.meaning && (
         <div className="text-center text-[16px] text-muted italic mt-2 px-2">{question.meaning}</div>
@@ -98,15 +113,22 @@ export default function QuizCard({
 
       {question.typed && !answered && <TypedAnswerInput onSubmit={onAnswer} />}
 
-      {question.typed && answered && (
+      {/* Ordre des mots : on assemble la phrase au lieu de choisir. */}
+      {question.builder && question.tokens && !answered && (
+        <SentenceBuilder tokens={question.tokens} lead={question.prompt || undefined} onSubmit={onAnswer} />
+      )}
+
+      {(question.typed || question.builder) && answered && (
         <div className="mt-6 text-center">
           <div className="font-ui text-[11px] uppercase tracking-[0.12em] text-muted mb-1.5">
             Ta réponse
           </div>
           <div
-            className="text-[20px] font-semibold"
+            lang="de"
+            className="text-[18px] font-semibold german"
             style={{ color: isRight ? "var(--das)" : "var(--die)" }}
           >
+            {question.prompt && question.builder ? `${question.prompt} ` : ""}
             {selected}
           </div>
         </div>
@@ -114,7 +136,7 @@ export default function QuizCard({
 
       <div
         className={`mt-6 grid gap-2.5 ${longChoices ? "grid-cols-1" : "grid-cols-3"} ${
-          question.typed ? "hidden" : ""
+          question.typed || question.builder ? "hidden" : ""
         }`}
       >
         {question.choices.map((choice, i) => {

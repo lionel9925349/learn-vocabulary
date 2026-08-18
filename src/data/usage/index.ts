@@ -20,6 +20,7 @@ import finalIt from "./final-it";
 import finalSprache from "./final-sprache";
 import finalLogistik from "./final-logistik";
 import finalBuero from "./final-buero";
+import grundwoerter from "./grundwoerter";
 
 const MAPS: UsageMap[] = [
   lager,
@@ -43,6 +44,7 @@ const MAPS: UsageMap[] = [
   finalSprache,
   finalLogistik,
   finalBuero,
+  grundwoerter,
 ];
 
 /** Table d'usages consolidée, indexée par identifiant de mot. */

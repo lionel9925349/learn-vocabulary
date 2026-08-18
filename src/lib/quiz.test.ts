@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import WORDS from "@/data";
 import { KIND_LABELS, buildQuestion, evaluate } from "./quiz";
 import { availableKinds, KIND_ORDER } from "./units";
+import { BLANK } from "./cloze";
 
 /**
  * Le générateur de questions tire au sort — distracteurs, tournures, cas,
@@ -14,7 +15,12 @@ import { availableKinds, KIND_ORDER } from "./units";
  * un doublon qui rendrait la question insoluble se voient tout de suite.
  */
 
-/** Chaque type de question est-il réellement produit par le vocabulaire ? */
+/** Les trois façons de répondre, qui n'ont pas les mêmes invariants. */
+const TYPED_KINDS = new Set(["type-de"]);
+const BUILDER_KINDS = new Set(["word-order"]);
+/** Questions dont la réponse **est** le sens : le montrer les résoudrait. */
+const MEANING_IS_ANSWER = new Set(["de-fr", "fr-de", "type-de", "cloze"]);
+
 describe("couverture du vocabulaire", () => {
   it("produit au moins un mot pour chaque type de question", () => {
     const seen = new Set<string>();
@@ -46,16 +52,25 @@ describe("invariants d'une question, sur tout le vocabulaire", () => {
     }
   });
 
-  it("affiche toujours un énoncé et une explication", () => {
+  it("affiche toujours une explication", () => {
     for (const { word, q } of questions) {
-      strictEqual(q.prompt.trim().length > 0, true, `${word.de} : énoncé vide`);
       strictEqual(q.explanation.trim().length > 0, true, `${word.de} : explication vide`);
+    }
+  });
+
+  it("affiche un énoncé, sauf là où la phrase se construit de zéro", () => {
+    for (const { word, kind, q } of questions) {
+      // Une phrase à reconstruire n'a d'énoncé que si elle a une amorce
+      // (« Wir sind im Verzug, … ») ; sinon elle commence par le premier mot
+      // à placer, et c'est le plateau qui l'affiche.
+      if (BUILDER_KINDS.has(kind)) continue;
+      strictEqual(q.prompt.trim().length > 0, true, `${word.de} (${kind}) : énoncé vide`);
     }
   });
 
   it("place la bonne réponse parmi les propositions", () => {
     for (const { word, kind, q } of questions) {
-      if (q.typed) continue;
+      if (q.typed || q.builder) continue;
       strictEqual(
         q.choices.includes(q.correct),
         true,
@@ -66,7 +81,7 @@ describe("invariants d'une question, sur tout le vocabulaire", () => {
 
   it("ne propose jamais deux fois la même réponse", () => {
     for (const { word, kind, q } of questions) {
-      if (q.typed) continue;
+      if (q.typed || q.builder) continue;
       strictEqual(
         new Set(q.choices).size,
         q.choices.length,
@@ -77,7 +92,7 @@ describe("invariants d'une question, sur tout le vocabulaire", () => {
 
   it("laisse toujours un vrai choix à faire", () => {
     for (const { word, kind, q } of questions) {
-      if (q.typed) continue;
+      if (q.typed || q.builder) continue;
       strictEqual(q.choices.length >= 2, true, `${word.de} (${kind}) : une seule proposition`);
     }
   });
@@ -102,18 +117,74 @@ describe("invariants d'une question, sur tout le vocabulaire", () => {
 
   it("cache le sens seulement quand c'est justement lui la réponse", () => {
     for (const { word, q } of questions) {
-      if (q.kind === "de-fr" || q.kind === "fr-de" || q.kind === "type-de") continue;
+      if (MEANING_IS_ANSWER.has(q.kind)) continue;
       strictEqual(
         (q.meaning ?? "").length > 0,
         true,
-        `${word.de} (${q.kind}) : on n'apprend pas un article sur un mot dont on ignore le sens`
+        `${word.de} (${q.kind}) : on ne travaille pas la grammaire d'un mot dont on ignore le sens`
       );
     }
   });
 
-  it("ne demande de taper que ce qui se tape", () => {
+  it("n'utilise le clavier et le plateau qu'où il faut", () => {
     for (const { q } of questions) {
-      strictEqual(q.typed === true, q.kind === "type-de");
+      strictEqual(q.typed === true, TYPED_KINDS.has(q.kind));
+      strictEqual(q.builder === true, BUILDER_KINDS.has(q.kind));
+    }
+  });
+
+  /**
+   * Une question à reconstruire doit être résoluble : les mots proposés
+   * doivent recouvrir exactement la phrase attendue, chacun servant une fois.
+   *
+   * Les mots ne sont pas des mots au sens typographique — « den Karton » en
+   * est un seul, pour que le Mittelfeld reste insécable. On vérifie donc que
+   * la phrase se laisse carreler par les jetons, et non qu'elle se découpe aux
+   * espaces.
+   */
+  it("donne exactement les mots de la phrase attendue", () => {
+    for (const { word, q } of questions) {
+      if (!q.builder) continue;
+      strictEqual(Array.isArray(q.tokens), true, `${word.de} : aucun mot à placer`);
+
+      const remaining = [...(q.tokens ?? [])];
+      let rest = q.correct;
+      while (rest.length > 0 && remaining.length > 0) {
+        // Le plus long d'abord : un jeton pourrait être le préfixe d'un autre.
+        const index = remaining
+          .map((t, i) => [t, i] as const)
+          .filter(([t]) => rest === t || rest.startsWith(`${t} `))
+          .sort((a, b) => b[0].length - a[0].length)[0]?.[1];
+        if (index === undefined) break;
+        const token = remaining.splice(index, 1)[0];
+        rest = rest.slice(token.length).replace(/^ /, "");
+      }
+
+      strictEqual(rest, "", `${word.de} : « ${q.correct} » n'est pas couverte par les mots proposés`);
+      strictEqual(remaining.length, 0, `${word.de} : mots en trop — ${remaining.join(", ")}`);
+    }
+  });
+
+  it("laisse un trou visible dans une question à contexte", () => {
+    for (const { word, q } of questions) {
+      if (q.kind !== "cloze") continue;
+      strictEqual(q.prompt.includes(BLANK), true, `${word.de} : pas de trou dans la phrase`);
+      strictEqual(
+        q.prompt.includes(q.correct),
+        false,
+        `${word.de} : la réponse est encore lisible dans l'énoncé`
+      );
+    }
+  });
+
+  it("ne laisse pas la réponse dans l'énoncé d'une question à trou grammatical", () => {
+    for (const { word, q } of questions) {
+      if (q.kind !== "preposition" && q.kind !== "passive") continue;
+      strictEqual(
+        q.prompt.includes("＿＿＿"),
+        true,
+        `${word.de} (${q.kind}) : pas de trou dans la phrase`
+      );
     }
   });
 });
@@ -146,5 +217,16 @@ describe("evaluate", () => {
     const result = evaluate(q, noun.de);
     strictEqual(result.correct, true);
     strictEqual(result.note?.includes("article"), true);
+  });
+
+  /** Sur une phrase reconstruite, seul l'ordre exact passe. */
+  it("sur une phrase assemblée, refuse un ordre différent", () => {
+    const verb = WORDS.find((w) => availableKinds(w).includes("word-order"))!;
+    const q = buildQuestion(verb, WORDS, "word-order");
+    strictEqual(evaluate(q, q.correct).correct, true);
+
+    const tokens = q.correct.split(" ");
+    const swapped = [tokens[1], tokens[0], ...tokens.slice(2)].join(" ");
+    strictEqual(evaluate(q, swapped).correct, false);
   });
 });
